@@ -36,18 +36,21 @@
     <div class="max-w-4xl mx-auto px-4 py-6 flex-grow w-full">
         <!-- Header -->
         <header class="text-center mb-6 relative">
+            <!-- Botón Modo Oscuro -->
             <button onclick="toggleDarkMode()" class="absolute right-0 top-0 p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 hidden dark:block"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 dark:hidden"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg>
             </button>
 
-            <h1 onclick="askAdmin()" class="text-3xl font-extrabold text-blue-600 dark:text-blue-400 tracking-tight mb-2 cursor-pointer select-none">Lotería Cloud</h1>
+            <h1 class="text-3xl font-extrabold text-blue-600 dark:text-blue-400 tracking-tight mb-2 select-none">Lotería Cloud</h1>
             
             <div class="flex flex-col items-center gap-2">
                 <div class="flex items-center gap-2">
                     <p id="role-badge" class="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Modo Observador</p>
                     <div id="sync-indicator" class="hidden"><div class="loader"></div></div>
                 </div>
+                <button id="admin-entry-btn" onclick="openModal('login-modal')" class="text-blue-500 dark:text-blue-400 text-xs font-bold hover:underline">Acceso Administrador</button>
+                <button id="admin-logout-btn" onclick="logoutAdmin()" class="hidden text-red-500 text-xs font-bold hover:underline">Cerrar Sesión Admin</button>
             </div>
         </header>
 
@@ -75,24 +78,44 @@
 
         <!-- Rejilla -->
         <div id="number-grid" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 mb-8">
-            <div class="col-span-full text-center py-10 text-slate-400 italic">Cargando sorteo...</div>
+            <div class="col-span-full text-center py-10 text-slate-400 italic">Conectando...</div>
         </div>
 
-        <!-- Acciones Admin -->
-        <div id="admin-actions" class="text-center hidden mb-8 space-y-2">
-            <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Panel de Control</p>
-            <button onclick="openResetModal()" class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 px-6 py-2 rounded-lg font-bold text-sm transition-colors border border-red-200 dark:border-red-800/50">
-                Reiniciar Sorteo Actual
-            </button>
+        <!-- Panel de Administración (Visible solo para admin) -->
+        <div id="admin-panel" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div class="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 rounded-2xl p-6 text-center">
+                <h3 class="text-blue-700 dark:text-blue-400 font-bold uppercase tracking-widest text-xs mb-4">Panel de Control</h3>
+                <div class="flex flex-wrap justify-center gap-3">
+                    <button onclick="openResetModal()" class="bg-red-600 text-white px-6 py-2 rounded-xl font-bold text-sm shadow-lg shadow-red-200 dark:shadow-none hover:bg-red-700 transition-colors">
+                        Reiniciar Sorteo Actual
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Footer -->
-    <footer class="py-4 text-center text-[10px] text-slate-400 dark:text-slate-500 border-t border-slate-200 dark:border-slate-800 w-full uppercase tracking-widest bg-white dark:bg-slate-900 transition-colors">
+    <footer class="py-6 text-center text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-200 dark:border-slate-800 w-full uppercase tracking-widest bg-white dark:bg-slate-900 transition-colors">
         <p>Creado por <span class="text-slate-700 dark:text-slate-300 font-black">Jorge Hernández</span></p>
     </footer>
 
-    <!-- Modales -->
+    <!-- MODAL: LOGIN ADMIN -->
+    <div id="login-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-3xl shadow-2xl p-8 text-center">
+            <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Acceso Privado</h3>
+            <p class="text-slate-500 text-sm mb-6">Ingresa la clave para gestionar los números.</p>
+            <input type="password" id="admin-password-input" placeholder="Clave de 4 dígitos" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 outline-none text-center text-xl tracking-widest font-bold focus:ring-2 focus:ring-blue-500 mb-4">
+            <div class="flex gap-3">
+                <button onclick="closeModal('login-modal')" class="flex-1 py-3 bg-slate-100 dark:bg-slate-700 rounded-xl font-bold">Cerrar</button>
+                <button onclick="checkAdminPassword()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold">Entrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: EDICIÓN / INFO -->
     <div id="edit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-2xl p-6 transition-colors">
             <div class="flex justify-between items-center mb-4">
@@ -104,37 +127,37 @@
             </div>
             
             <div class="space-y-4">
-                <div id="info-display" class="hidden p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700 transition-colors">
+                <div id="info-display" class="hidden p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
                     <p class="text-[10px] text-slate-400 uppercase font-black mb-1">Cliente asignado</p>
                     <p id="display-name" class="text-xl font-bold text-blue-700 dark:text-blue-400"></p>
-                    <p id="display-status" class="text-xs font-bold mt-1"></p>
+                    <p id="display-status" class="text-xs font-bold mt-1 uppercase tracking-wider"></p>
                 </div>
 
                 <div id="admin-inputs" class="space-y-3 hidden">
-                    <input type="text" id="input-name" placeholder="Nombre completo" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-2 focus:ring-blue-500 dark:text-white transition-all">
-                    <select id="input-status" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none dark:text-white font-bold transition-all">
+                    <input type="text" id="input-name" placeholder="Nombre completo" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-2 focus:ring-blue-500 dark:text-white">
+                    <select id="input-status" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none dark:text-white font-bold">
                         <option value="reserved">APARTADO</option>
                         <option value="cancelled">PAGADO (CANCELADO)</option>
                     </select>
-                    <button onclick="saveData()" class="w-full bg-blue-600 dark:bg-blue-500 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 dark:shadow-none">Guardar</button>
-                    <button id="delete-btn" onclick="deleteEntry()" class="w-full text-red-500 dark:text-red-400 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg font-bold text-sm">Liberar número</button>
+                    <button onclick="saveData()" class="w-full bg-blue-600 dark:bg-blue-500 text-white font-bold py-3 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 dark:shadow-none transition-all">Guardar Cambios</button>
+                    <button id="delete-btn" onclick="deleteEntry()" class="w-full text-red-500 dark:text-red-400 py-2 font-bold text-sm">Liberar número</button>
                 </div>
 
                 <div id="observer-msg" class="text-slate-400 dark:text-slate-500 text-center py-4 italic text-sm">
-                    Solo lectura. Inicia sesión como administrador.
+                    Número disponible.
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal Reinicio -->
+    <!-- MODAL: REINICIO -->
     <div id="reset-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-2xl p-6 text-center">
-            <h3 class="text-xl font-bold mb-2">¿Reiniciar sorteo?</h3>
-            <p id="reset-msg" class="text-slate-500 text-sm mb-6">Se borrarán todos los datos del Sorteo A.</p>
+            <h3 class="text-xl font-bold mb-2 text-red-600">¿Vaciar Sorteo?</h3>
+            <p id="reset-msg" class="text-slate-500 text-sm mb-6"></p>
             <div class="flex gap-3">
-                <button onclick="closeModal('reset-modal')" class="flex-1 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg font-bold">No</button>
-                <button onclick="clearAllData()" class="flex-1 py-2 bg-red-600 text-white rounded-lg font-bold">Sí, borrar</button>
+                <button onclick="closeModal('reset-modal')" class="flex-1 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg font-bold">Cancelar</button>
+                <button onclick="clearAllData()" class="flex-1 py-2 bg-red-600 text-white rounded-lg font-bold">Sí, borrar todo</button>
             </div>
         </div>
     </div>
@@ -171,7 +194,7 @@
         const db = getFirestore(app);
 
         let lotteryData = {};
-        let currentDraw = 'draw1'; // 'draw1' o 'draw2'
+        let currentDraw = 'draw1'; 
         let currentSelectedNumber = null;
         let user = null;
         let isAdmin = false;
@@ -192,7 +215,7 @@
 
         function listenToData() {
             if (!user) return;
-            if (unsubscribe) unsubscribe(); // Limpiar listener anterior
+            if (unsubscribe) unsubscribe();
             
             showSync(true);
             unsubscribe = onSnapshot(getDocRef(), (snapshot) => {
@@ -221,28 +244,48 @@
             return base + "bg-amber-500 text-white border-amber-700 shadow-inner";
         }
 
-        // Cambio de pestañas
         window.switchDraw = (draw) => {
             if (currentDraw === draw) return;
             currentDraw = draw;
-            
-            // UI de pestañas
             const isD1 = draw === 'draw1';
             document.getElementById('tab-draw1').className = isD1 ? "flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm transition-all" : "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 dark:text-slate-400 transition-all";
             document.getElementById('tab-draw2').className = !isD1 ? "flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm transition-all" : "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 dark:text-slate-400 transition-all";
-            
             listenToData();
         };
 
-        window.askAdmin = () => {
-            const pass = prompt("Clave Admin:");
-            if (pass === "8384") {
+        // LÓGICA DE ADMINISTRADOR
+        window.checkAdminPassword = () => {
+            const passInput = document.getElementById('admin-password-input');
+            if (passInput.value === "8384") {
                 isAdmin = true;
-                document.getElementById('role-badge').innerText = "Administrador";
-                document.getElementById('role-badge').className = "bg-blue-600 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider";
-                document.getElementById('admin-actions').classList.remove('hidden');
+                passInput.value = '';
+                closeModal('login-modal');
+                updateAdminUI();
+            } else {
+                passInput.classList.add('border-red-500', 'animate-bounce');
+                setTimeout(() => passInput.classList.remove('border-red-500', 'animate-bounce'), 1000);
             }
         };
+
+        window.logoutAdmin = () => {
+            isAdmin = false;
+            document.getElementById('role-badge').innerText = "Modo Observador";
+            document.getElementById('role-badge').className = "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider";
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('admin-entry-btn').classList.remove('hidden');
+            document.getElementById('admin-logout-btn').classList.add('hidden');
+            renderGrid();
+        };
+
+        function updateAdminUI() {
+            const badge = document.getElementById('role-badge');
+            badge.innerText = "Administrador";
+            badge.className = "bg-blue-600 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider";
+            document.getElementById('admin-panel').classList.remove('hidden');
+            document.getElementById('admin-entry-btn').classList.add('hidden');
+            document.getElementById('admin-logout-btn').classList.remove('hidden');
+            renderGrid();
+        }
 
         window.openEditModal = (num) => {
             currentSelectedNumber = num;
@@ -305,8 +348,9 @@
         };
 
         window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+        window.openModal = (id) => document.getElementById(id).classList.remove('hidden');
         window.openResetModal = () => {
-            document.getElementById('reset-msg').innerText = `Se borrarán todos los datos del ${currentDraw === 'draw1' ? 'Sorteo A' : 'Sorteo B'}.`;
+            document.getElementById('reset-msg').innerText = `Se borrarán todos los datos del ${currentDraw === 'draw1' ? 'Sorteo A' : 'Sorteo B'}. Esta acción no se puede deshacer.`;
             document.getElementById('reset-modal').classList.remove('hidden');
         }
         function showSync(s) { document.getElementById('sync-indicator').classList.toggle('hidden', !s); }
