@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lotería de Jorge - Cloud</title>
+    <title>Lotería Doble - Jorge Hernández</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -23,134 +23,128 @@
             border: 3px solid #f3f3f3;
             border-top: 3px solid #3498db;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             animation: spin 1s linear infinite;
             display: inline-block;
-        }
-        .dark .loader {
-            border-color: #475569;
-            border-top-color: #60a5fa;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 font-sans min-h-screen text-slate-800 dark:text-slate-100 transition-colors duration-200 flex flex-col">
 
-    <div class="max-w-4xl mx-auto px-4 py-8 flex-grow w-full">
-        <header class="text-center mb-8 relative">
-            <!-- Botón de Modo Oscuro -->
-            <button onclick="toggleDarkMode()" class="absolute right-0 top-0 p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 hidden dark:block">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
-                </svg>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 dark:hidden">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
-                </svg>
+    <div class="max-w-4xl mx-auto px-4 py-6 flex-grow w-full">
+        <!-- Header -->
+        <header class="text-center mb-6 relative">
+            <button onclick="toggleDarkMode()" class="absolute right-0 top-0 p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 hidden dark:block"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 dark:hidden"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg>
             </button>
 
-            <h1 onclick="askAdmin()" class="text-4xl font-extrabold text-blue-600 dark:text-blue-400 tracking-tight mb-2 cursor-pointer select-none">Lotería Cloud</h1>
-            <div class="flex flex-col items-center justify-center gap-2">
+            <h1 onclick="askAdmin()" class="text-3xl font-extrabold text-blue-600 dark:text-blue-400 tracking-tight mb-2 cursor-pointer select-none">Lotería Cloud</h1>
+            
+            <div class="flex flex-col items-center gap-2">
                 <div class="flex items-center gap-2">
-                    <p id="role-badge" class="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider transition-colors">Modo Observador</p>
+                    <p id="role-badge" class="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Modo Observador</p>
                     <div id="sync-indicator" class="hidden"><div class="loader"></div></div>
                 </div>
-                <button id="admin-login-btn" onclick="askAdmin()" class="text-blue-500 dark:text-blue-400 text-sm hover:underline">Acceso Administrador</button>
             </div>
         </header>
 
+        <!-- Selector de Sorteos (Tabs) -->
+        <div class="flex p-1 bg-slate-200 dark:bg-slate-800 rounded-xl mb-6 max-w-xs mx-auto transition-colors">
+            <button id="tab-draw1" onclick="switchDraw('draw1')" class="flex-1 py-2 text-sm font-bold rounded-lg transition-all bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm">Sorteo A</button>
+            <button id="tab-draw2" onclick="switchDraw('draw2')" class="flex-1 py-2 text-sm font-bold rounded-lg transition-all text-slate-500 dark:text-slate-400">Sorteo B</button>
+        </div>
+
         <!-- Leyenda -->
-        <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mb-6 flex flex-wrap justify-center gap-4 text-sm font-medium transition-colors">
-            <div class="flex items-center gap-2">
-                <div class="w-4 h-4 rounded bg-blue-500 dark:bg-blue-600"></div>
+        <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mb-6 flex flex-wrap justify-center gap-4 text-[11px] font-bold uppercase transition-colors">
+            <div class="flex items-center gap-1.5">
+                <div class="w-3.5 h-3.5 rounded bg-blue-500"></div>
                 <span>Disponible</span>
             </div>
-            <div class="flex items-center gap-2">
-                <div class="w-4 h-4 rounded bg-amber-500 dark:bg-amber-600"></div>
+            <div class="flex items-center gap-1.5">
+                <div class="w-3.5 h-3.5 rounded bg-amber-500"></div>
                 <span>Apartado</span>
             </div>
-            <div class="flex items-center gap-2">
-                <div class="w-4 h-4 rounded bg-emerald-500 dark:bg-emerald-600"></div>
+            <div class="flex items-center gap-1.5">
+                <div class="w-3.5 h-3.5 rounded bg-emerald-500"></div>
                 <span>Pagado</span>
             </div>
         </div>
 
         <!-- Rejilla -->
         <div id="number-grid" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 mb-8">
-            <div class="col-span-full text-center py-10 text-slate-400 dark:text-slate-500 italic">Conectando...</div>
+            <div class="col-span-full text-center py-10 text-slate-400 italic">Cargando sorteo...</div>
         </div>
 
-        <!-- Solo Admin ve este botón -->
-        <div id="admin-actions" class="text-center hidden mb-8">
-            <button onclick="openResetModal()" class="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 px-6 py-2 rounded-lg font-semibold transition-colors border border-red-200 dark:border-red-800/50">
-                Reiniciar Lotería
+        <!-- Acciones Admin -->
+        <div id="admin-actions" class="text-center hidden mb-8 space-y-2">
+            <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Panel de Control</p>
+            <button onclick="openResetModal()" class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 px-6 py-2 rounded-lg font-bold text-sm transition-colors border border-red-200 dark:border-red-800/50">
+                Reiniciar Sorteo Actual
             </button>
         </div>
     </div>
 
-    <!-- Footer con Créditos -->
-    <footer class="py-4 text-center text-sm text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-700 w-full">
-        <p>Creado por <span class="font-bold text-slate-700 dark:text-slate-300">Jorge Hernández</span></p>
+    <!-- Footer -->
+    <footer class="py-4 text-center text-[10px] text-slate-400 dark:text-slate-500 border-t border-slate-200 dark:border-slate-800 w-full uppercase tracking-widest bg-white dark:bg-slate-900 transition-colors">
+        <p>Creado por <span class="text-slate-700 dark:text-slate-300 font-black">Jorge Hernández</span></p>
     </footer>
 
-    <!-- Modal de Edición -->
-    <div id="edit-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <!-- Modales -->
+    <div id="edit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-2xl p-6 transition-colors">
             <div class="flex justify-between items-center mb-4">
-                <h2 id="modal-title" class="text-2xl font-bold text-slate-800 dark:text-slate-100">Número --</h2>
-                <button onclick="closeModal('edit-modal')" class="text-slate-400 dark:text-slate-500 text-2xl hover:text-slate-600 dark:hover:text-slate-300">✕</button>
+                <div class="flex flex-col">
+                    <span id="modal-draw-name" class="text-[10px] font-black text-blue-500 uppercase tracking-tighter">Sorteo A</span>
+                    <h2 id="modal-title" class="text-2xl font-bold text-slate-800 dark:text-slate-100">Número --</h2>
+                </div>
+                <button onclick="closeModal('edit-modal')" class="text-slate-400 dark:text-slate-500 text-2xl">✕</button>
             </div>
             
-            <div class="space-y-4 text-center">
-                <div id="info-display" class="hidden p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg mb-4 transition-colors">
-                    <p class="text-sm text-slate-500 dark:text-slate-400 uppercase font-bold">Asignado a:</p>
+            <div class="space-y-4">
+                <div id="info-display" class="hidden p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700 transition-colors">
+                    <p class="text-[10px] text-slate-400 uppercase font-black mb-1">Cliente asignado</p>
                     <p id="display-name" class="text-xl font-bold text-blue-700 dark:text-blue-400"></p>
-                    <p id="display-status" class="text-sm font-medium mt-1"></p>
+                    <p id="display-status" class="text-xs font-bold mt-1"></p>
                 </div>
 
-                <div id="admin-inputs" class="space-y-4 hidden">
-                    <input type="text" id="input-name" placeholder="Nombre del cliente" class="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-2 focus:ring-blue-500 dark:text-white transition-colors">
-                    <select id="input-status" class="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none dark:text-white transition-colors">
-                        <option value="reserved">Apartado</option>
-                        <option value="cancelled">Pagado</option>
+                <div id="admin-inputs" class="space-y-3 hidden">
+                    <input type="text" id="input-name" placeholder="Nombre completo" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-2 focus:ring-blue-500 dark:text-white transition-all">
+                    <select id="input-status" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none dark:text-white font-bold transition-all">
+                        <option value="reserved">APARTADO</option>
+                        <option value="cancelled">PAGADO (CANCELADO)</option>
                     </select>
-                    <button onclick="saveData()" class="w-full bg-blue-600 dark:bg-blue-500 text-white font-bold py-3 rounded-xl hover:bg-blue-700 dark:hover:bg-blue-600 shadow-lg shadow-blue-200 dark:shadow-blue-900/30 transition-all">Guardar Cambios</button>
-                    <button id="delete-btn" onclick="deleteEntry()" class="w-full text-red-500 dark:text-red-400 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg font-medium transition-colors">Liberar número</button>
+                    <button onclick="saveData()" class="w-full bg-blue-600 dark:bg-blue-500 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 dark:shadow-none">Guardar</button>
+                    <button id="delete-btn" onclick="deleteEntry()" class="w-full text-red-500 dark:text-red-400 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg font-bold text-sm">Liberar número</button>
                 </div>
 
-                <div id="observer-msg" class="text-slate-500 dark:text-slate-400 py-4 italic">
-                    Solo lectura. Inicia sesión como admin para editar.
+                <div id="observer-msg" class="text-slate-400 dark:text-slate-500 text-center py-4 italic text-sm">
+                    Solo lectura. Inicia sesión como administrador.
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal de Reinicio -->
-    <div id="reset-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center transition-colors">
-            <h3 class="text-xl font-bold mb-2 text-slate-800 dark:text-slate-100">¿Reiniciar base de datos?</h3>
-            <p class="text-slate-500 dark:text-slate-400 mb-6 text-sm">Esta acción borrará todos los registros.</p>
+    <!-- Modal Reinicio -->
+    <div id="reset-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-2xl p-6 text-center">
+            <h3 class="text-xl font-bold mb-2">¿Reiniciar sorteo?</h3>
+            <p id="reset-msg" class="text-slate-500 text-sm mb-6">Se borrarán todos los datos del Sorteo A.</p>
             <div class="flex gap-3">
-                <button onclick="closeModal('reset-modal')" class="flex-1 py-2 bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancelar</button>
-                <button onclick="clearAllData()" class="flex-1 py-2 bg-red-600 dark:bg-red-500 text-white rounded-lg font-bold hover:bg-red-700 dark:hover:bg-red-600 transition-colors">Sí, borrar</button>
+                <button onclick="closeModal('reset-modal')" class="flex-1 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg font-bold">No</button>
+                <button onclick="clearAllData()" class="flex-1 py-2 bg-red-600 text-white rounded-lg font-bold">Sí, borrar</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Lógica del Modo Oscuro
         function toggleDarkMode() {
             document.documentElement.classList.toggle('dark');
             localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
         }
-
-        // Cargar preferencia al inicio
-        if (localStorage.getItem('darkMode') === 'true' || 
-            (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
+        if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark');
     </script>
 
     <script type="module">
@@ -158,7 +152,6 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuración de Jorge
         const configPropia = {
             apiKey: "AIzaSyB6RK4WYwnnAbZjR2_SmdQGQKP8YWSFFJw",
             authDomain: "loteria-jorge.firebaseapp.com",
@@ -178,19 +171,18 @@
         const db = getFirestore(app);
 
         let lotteryData = {};
+        let currentDraw = 'draw1'; // 'draw1' o 'draw2'
         let currentSelectedNumber = null;
         let user = null;
         let isAdmin = false;
+        let unsubscribe = null;
 
-        const getDocRef = () => doc(db, 'artifacts', appId, 'public', 'data', 'game_state', 'numbers');
+        const getDocRef = () => doc(db, 'artifacts', appId, 'public', 'data', 'game_state', currentDraw);
 
         async function init() {
             try {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                if (initialAuthToken) await signInWithCustomToken(auth, initialAuthToken);
+                else await signInAnonymously(auth);
                 onAuthStateChanged(auth, (u) => {
                     user = u;
                     if (user) listenToData();
@@ -200,9 +192,13 @@
 
         function listenToData() {
             if (!user) return;
-            onSnapshot(getDocRef(), (snapshot) => {
+            if (unsubscribe) unsubscribe(); // Limpiar listener anterior
+            
+            showSync(true);
+            unsubscribe = onSnapshot(getDocRef(), (snapshot) => {
                 lotteryData = snapshot.exists() ? snapshot.data() : {};
                 renderGrid();
+                showSync(false);
             }, (error) => console.error(error));
         }
 
@@ -220,32 +216,38 @@
 
         function getNumberClass(num) {
             const base = "number-btn h-12 flex items-center justify-center rounded-lg font-bold text-lg border-b-4 ";
-            if (!lotteryData[num]) return base + "bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900/50 hover:bg-blue-50 dark:hover:bg-slate-700 shadow-sm transition-colors";
-            if (lotteryData[num].status === 'cancelled') return base + "bg-emerald-500 dark:bg-emerald-600 text-white border-emerald-700 dark:border-emerald-800 shadow-inner transition-colors";
-            return base + "bg-amber-500 dark:bg-amber-600 text-white border-amber-700 dark:border-amber-800 shadow-inner transition-colors";
+            if (!lotteryData[num]) return base + "bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900/40 hover:bg-blue-50 shadow-sm transition-colors";
+            if (lotteryData[num].status === 'cancelled') return base + "bg-emerald-500 text-white border-emerald-700 shadow-inner";
+            return base + "bg-amber-500 text-white border-amber-700 shadow-inner";
         }
 
-        window.askAdmin = () => {
-            const pass = prompt("Ingresa la clave de administrador:");
-            if (pass === "8384") {
-                isAdmin = true;
-                updateAdminUI();
-            } else if (pass !== null) {
-                alert("Clave incorrecta");
-            }
+        // Cambio de pestañas
+        window.switchDraw = (draw) => {
+            if (currentDraw === draw) return;
+            currentDraw = draw;
+            
+            // UI de pestañas
+            const isD1 = draw === 'draw1';
+            document.getElementById('tab-draw1').className = isD1 ? "flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm transition-all" : "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 dark:text-slate-400 transition-all";
+            document.getElementById('tab-draw2').className = !isD1 ? "flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm transition-all" : "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 dark:text-slate-400 transition-all";
+            
+            listenToData();
         };
 
-        function updateAdminUI() {
-            const badge = document.getElementById('role-badge');
-            badge.innerText = "Modo Administrador";
-            badge.className = "bg-blue-600 dark:bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider transition-colors";
-            document.getElementById('admin-actions').classList.remove('hidden');
-            document.getElementById('admin-login-btn').classList.add('hidden');
-        }
+        window.askAdmin = () => {
+            const pass = prompt("Clave Admin:");
+            if (pass === "8384") {
+                isAdmin = true;
+                document.getElementById('role-badge').innerText = "Administrador";
+                document.getElementById('role-badge').className = "bg-blue-600 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider";
+                document.getElementById('admin-actions').classList.remove('hidden');
+            }
+        };
 
         window.openEditModal = (num) => {
             currentSelectedNumber = num;
             document.getElementById('modal-title').innerText = `Número ${num.toString().padStart(2, '0')}`;
+            document.getElementById('modal-draw-name').innerText = currentDraw === 'draw1' ? "SORTEO A" : "SORTEO B";
             
             const adminInputs = document.getElementById('admin-inputs');
             const observerMsg = document.getElementById('observer-msg');
@@ -255,23 +257,20 @@
                 adminInputs.classList.remove('hidden');
                 observerMsg.classList.add('hidden');
                 infoDisplay.classList.add('hidden');
-                
-                const data = lotteryData[num] || { name: '', status: 'reserved' };
-                document.getElementById('input-name').value = data.name;
-                document.getElementById('input-status').value = data.status;
+                document.getElementById('input-name').value = lotteryData[num] ? lotteryData[num].name : '';
+                document.getElementById('input-status').value = lotteryData[num] ? lotteryData[num].status : 'reserved';
                 document.getElementById('delete-btn').classList.toggle('hidden', !lotteryData[num]);
             } else {
                 adminInputs.classList.add('hidden');
-                observerMsg.classList.toggle('hidden', !!lotteryData[num]);
-                
                 if (lotteryData[num]) {
                     infoDisplay.classList.remove('hidden');
+                    observerMsg.classList.add('hidden');
                     document.getElementById('display-name').innerText = lotteryData[num].name;
                     document.getElementById('display-status').innerText = lotteryData[num].status === 'cancelled' ? '✅ PAGADO' : '⏳ APARTADO';
-                    document.getElementById('display-status').className = lotteryData[num].status === 'cancelled' ? 'text-emerald-600 dark:text-emerald-400 text-sm font-bold mt-1' : 'text-amber-600 dark:text-amber-400 text-sm font-bold mt-1';
+                    document.getElementById('display-status').className = lotteryData[num].status === 'cancelled' ? 'text-emerald-500 font-black' : 'text-amber-500 font-black';
                 } else {
                     infoDisplay.classList.add('hidden');
-                    observerMsg.innerText = "Número disponible. Contacta al administrador para apartar.";
+                    observerMsg.classList.remove('hidden');
                 }
             }
             document.getElementById('edit-modal').classList.remove('hidden');
@@ -289,7 +288,7 @@
         };
 
         window.deleteEntry = async () => {
-            if (!isAdmin || !user) return;
+            if (!isAdmin) return;
             showSync(true);
             delete lotteryData[currentSelectedNumber];
             await setDoc(getDocRef(), lotteryData);
@@ -298,7 +297,7 @@
         };
 
         window.clearAllData = async () => {
-            if (!isAdmin || !user) return;
+            if (!isAdmin) return;
             showSync(true);
             await deleteDoc(getDocRef());
             closeModal('reset-modal');
@@ -306,7 +305,10 @@
         };
 
         window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
-        window.openResetModal = () => document.getElementById('reset-modal').classList.remove('hidden');
+        window.openResetModal = () => {
+            document.getElementById('reset-msg').innerText = `Se borrarán todos los datos del ${currentDraw === 'draw1' ? 'Sorteo A' : 'Sorteo B'}.`;
+            document.getElementById('reset-modal').classList.remove('hidden');
+        }
         function showSync(s) { document.getElementById('sync-indicator').classList.toggle('hidden', !s); }
 
         init();
