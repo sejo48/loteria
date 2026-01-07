@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lotería en la Nube</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .number-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .number-btn:active {
+            transform: scale(0.9);
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans min-h-screen text-slate-800">
+
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-blue-600 tracking-tight mb-2">Lotería Cloud</h1>
+            <div class="flex items-center justify-center gap-2">
+                <p class="text-slate-500 text-lg">Sincronizado en tiempo real</p>
+                <div id="sync-indicator" class="hidden"><div class="loader"></div></div>
+            </div>
+        </header>
+
+        <div id="setup-warning" class="hidden bg-amber-50 border border-amber-200 p-4 rounded-xl mb-6 text-amber-800 text-sm">
+            <strong>Atención Jorge:</strong> Para que funcione en GitHub, debes colocar tus propias claves de Firebase en el código.
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-wrap justify-center gap-4 text-sm font-medium">
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-blue-500"></div>
+                <span>Disponible</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-amber-500"></div>
+                <span>Apartado</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-emerald-500"></div>
+                <span>Pagado</span>
+            </div>
+        </div>
+
+        <div id="number-grid" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 mb-8">
+            <div class="col-span-full text-center py-10 text-slate-400 italic">Conectando...</div>
+        </div>
+
+        <div class="text-center">
+            <button onclick="openResetModal()" class="bg-red-50 text-red-600 hover:bg-red-100 px-6 py-2 rounded-lg font-semibold transition-colors border border-red-200">
+                Reiniciar Lotería
+            </button>
+        </div>
+    </div>
+
+    <!-- Modales -->
+    <div id="edit-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="modal-title" class="text-2xl font-bold">Número --</h2>
+                <button onclick="closeModal('edit-modal')" class="text-slate-400">✕</button>
+            </div>
+            <div class="space-y-4">
+                <input type="text" id="input-name" placeholder="Nombre del cliente" class="w-full px-4 py-3 rounded-lg border outline-none focus:ring-2 focus:ring-blue-500">
+                <select id="input-status" class="w-full px-4 py-3 rounded-lg border outline-none bg-white">
+                    <option value="reserved">Apartado</option>
+                    <option value="cancelled">Pagado</option>
+                </select>
+                <button onclick="saveData()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700">Guardar</button>
+                <button id="delete-btn" onclick="deleteEntry()" class="w-full text-red-500 py-2 hover:bg-red-50 rounded-lg">Liberar número</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="reset-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center">
+            <h3 class="text-xl font-bold mb-2">¿Reiniciar todo?</h3>
+            <p class="text-slate-500 mb-4 text-sm">Ingresa la clave maestra (8384):</p>
+            <input type="password" id="reset-password-input" class="w-full px-4 py-2 mb-2 rounded-lg border text-center outline-none focus:ring-2 focus:ring-red-500">
+            <p id="reset-error" class="text-red-500 text-xs mb-4 hidden font-semibold">Clave incorrecta</p>
+            <div class="flex gap-3">
+                <button onclick="closeModal('reset-modal')" class="flex-1 py-2 bg-slate-100 rounded-lg">Cancelar</button>
+                <button onclick="clearAllData()" class="flex-1 py-2 bg-red-600 text-white rounded-lg">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // CONFIGURACIÓN PARA JORGE:
+        // Si subes esto a GitHub, rellena 'configPropia' con tus datos de Firebase Console
+        const configPropia = {
+            apiKey: "",
+            authDomain: "",
+            projectId: "",
+            storageBucket: "",
+            messagingSenderId: "",
+            appId: ""
+        };
+
+        // Detectar si estamos en el entorno de Gemini o en GitHub/Local
+        const isGemini = typeof __firebase_config !== 'undefined';
+        const firebaseConfig = isGemini ? JSON.parse(__firebase_config) : configPropia;
+        const appId = isGemini ? (typeof __app_id !== 'undefined' ? __app_id : 'loteria-jorge') : 'tu-app-id-real';
+        const initialAuthToken = isGemini && typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        if (!firebaseConfig.apiKey && !isGemini) {
+            document.getElementById('setup-warning').classList.remove('hidden');
+        }
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let lotteryData = {};
+        let currentSelectedNumber = null;
+        let user = null;
+
+        const getDocRef = () => doc(db, 'artifacts', appId, 'public', 'data', 'game_state', 'numbers');
+
+        async function init() {
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                onAuthStateChanged(auth, (u) => {
+                    user = u;
+                    if (user) listenToData();
+                });
+            } catch (err) {
+                console.error("Error:", err);
+            }
+        }
+
+        function listenToData() {
+            if (!user) return;
+            onSnapshot(getDocRef(), (snapshot) => {
+                lotteryData = snapshot.exists() ? snapshot.data() : {};
+                renderGrid();
+            }, (error) => console.error(error));
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('number-grid');
+            grid.innerHTML = '';
+            for (let i = 1; i <= 99; i++) {
+                const btn = document.createElement('button');
+                btn.innerText = i.toString().padStart(2, '0');
+                btn.className = getNumberClass(i);
+                btn.onclick = () => openEditModal(i);
+                grid.appendChild(btn);
+            }
+        }
+
+        function getNumberClass(num) {
+            const base = "number-btn h-12 flex items-center justify-center rounded-lg font-bold text-lg border-b-4 ";
+            if (!lotteryData[num]) return base + "bg-white text-blue-600 border-blue-200 hover:bg-blue-50 shadow-sm";
+            if (lotteryData[num].status === 'cancelled') return base + "bg-emerald-500 text-white border-emerald-700 shadow-inner";
+            return base + "bg-amber-500 text-white border-amber-700 shadow-inner";
+        }
+
+        window.openEditModal = (num) => {
+            currentSelectedNumber = num;
+            document.getElementById('modal-title').innerText = `Número ${num.toString().padStart(2, '0')}`;
+            const nameInput = document.getElementById('input-name');
+            const statusInput = document.getElementById('input-status');
+            nameInput.value = lotteryData[num] ? lotteryData[num].name : '';
+            statusInput.value = lotteryData[num] ? lotteryData[num].status : 'reserved';
+            document.getElementById('delete-btn').classList.toggle('hidden', !lotteryData[num]);
+            document.getElementById('edit-modal').classList.remove('hidden');
+        };
+
+        window.saveData = async () => {
+            const name = document.getElementById('input-name').value.trim();
+            if (!name || !user) return;
+            showSync(true);
+            lotteryData[currentSelectedNumber] = { name, status: document.getElementById('input-status').value };
+            await setDoc(getDocRef(), lotteryData);
+            closeModal('edit-modal');
+            showSync(false);
+        };
+
+        window.deleteEntry = async () => {
+            if (!user) return;
+            showSync(true);
+            delete lotteryData[currentSelectedNumber];
+            await setDoc(getDocRef(), lotteryData);
+            closeModal('edit-modal');
+            showSync(false);
+        };
+
+        window.clearAllData = async () => {
+            if (document.getElementById('reset-password-input').value === '8384') {
+                showSync(true);
+                await deleteDoc(getDocRef());
+                closeModal('reset-modal');
+                showSync(false);
+            } else {
+                document.getElementById('reset-error').classList.remove('hidden');
+            }
+        };
+
+        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+        window.openResetModal = () => document.getElementById('reset-modal').classList.remove('hidden');
+        function showSync(s) { document.getElementById('sync-indicator').classList.toggle('hidden', !s); }
+
+        init();
+    </script>
+</body>
+</html>
