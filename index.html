@@ -3,15 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lotería de Jorge</title>
+    <title>Lotería de Jorge - Cloud</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .number-btn {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .number-btn:active {
-            transform: scale(0.9);
-        }
+        .number-btn { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .number-btn:active { transform: scale(0.9); }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -32,13 +28,17 @@
 
     <div class="max-w-4xl mx-auto px-4 py-8">
         <header class="text-center mb-8">
-            <h1 class="text-4xl font-extrabold text-blue-600 tracking-tight mb-2">Lotería Cloud</h1>
-            <div class="flex items-center justify-center gap-2">
-                <p class="text-slate-500 text-lg">Sincronizado en tiempo real</p>
-                <div id="sync-indicator" class="hidden"><div class="loader"></div></div>
+            <h1 onclick="askAdmin()" class="text-4xl font-extrabold text-blue-600 tracking-tight mb-2 cursor-pointer select-none">Lotería Cloud</h1>
+            <div class="flex flex-col items-center justify-center gap-2">
+                <div class="flex items-center gap-2">
+                    <p id="role-badge" class="bg-slate-200 text-slate-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Modo Observador</p>
+                    <div id="sync-indicator" class="hidden"><div class="loader"></div></div>
+                </div>
+                <button id="admin-login-btn" onclick="askAdmin()" class="text-blue-500 text-sm hover:underline">Acceso Administrador</button>
             </div>
         </header>
 
+        <!-- Leyenda -->
         <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-wrap justify-center gap-4 text-sm font-medium">
             <div class="flex items-center gap-2">
                 <div class="w-4 h-4 rounded bg-blue-500"></div>
@@ -54,45 +54,59 @@
             </div>
         </div>
 
+        <!-- Rejilla -->
         <div id="number-grid" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 mb-8">
-            <div class="col-span-full text-center py-10 text-slate-400 italic">Conectando con Firebase...</div>
+            <div class="col-span-full text-center py-10 text-slate-400 italic">Conectando...</div>
         </div>
 
-        <div class="text-center">
+        <!-- Solo Admin ve este botón -->
+        <div id="admin-actions" class="text-center hidden">
             <button onclick="openResetModal()" class="bg-red-50 text-red-600 hover:bg-red-100 px-6 py-2 rounded-lg font-semibold transition-colors border border-red-200">
                 Reiniciar Lotería
             </button>
         </div>
     </div>
 
-    <!-- Modales -->
+    <!-- Modal de Edición -->
     <div id="edit-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
             <div class="flex justify-between items-center mb-4">
-                <h2 id="modal-title" class="text-2xl font-bold">Número --</h2>
-                <button onclick="closeModal('edit-modal')" class="text-slate-400">✕</button>
+                <h2 id="modal-title" class="text-2xl font-bold text-slate-800">Número --</h2>
+                <button onclick="closeModal('edit-modal')" class="text-slate-400 text-2xl">✕</button>
             </div>
-            <div class="space-y-4">
-                <input type="text" id="input-name" placeholder="Nombre del cliente" class="w-full px-4 py-3 rounded-lg border outline-none focus:ring-2 focus:ring-blue-500">
-                <select id="input-status" class="w-full px-4 py-3 rounded-lg border outline-none bg-white">
-                    <option value="reserved">Apartado</option>
-                    <option value="cancelled">Pagado</option>
-                </select>
-                <button onclick="saveData()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700">Guardar</button>
-                <button id="delete-btn" onclick="deleteEntry()" class="w-full text-red-500 py-2 hover:bg-red-50 rounded-lg">Liberar número</button>
+            
+            <div class="space-y-4 text-center">
+                <div id="info-display" class="hidden p-4 bg-slate-50 rounded-lg mb-4">
+                    <p class="text-sm text-slate-500 uppercase font-bold">Asignado a:</p>
+                    <p id="display-name" class="text-xl font-bold text-blue-700"></p>
+                    <p id="display-status" class="text-sm font-medium mt-1"></p>
+                </div>
+
+                <div id="admin-inputs" class="space-y-4 hidden">
+                    <input type="text" id="input-name" placeholder="Nombre del cliente" class="w-full px-4 py-3 rounded-lg border outline-none focus:ring-2 focus:ring-blue-500">
+                    <select id="input-status" class="w-full px-4 py-3 rounded-lg border outline-none bg-white">
+                        <option value="reserved">Apartado</option>
+                        <option value="cancelled">Pagado</option>
+                    </select>
+                    <button onclick="saveData()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all">Guardar Cambios</button>
+                    <button id="delete-btn" onclick="deleteEntry()" class="w-full text-red-500 py-2 hover:bg-red-50 rounded-lg font-medium">Liberar número</button>
+                </div>
+
+                <div id="observer-msg" class="text-slate-500 py-4 italic">
+                    Solo lectura. Inicia sesión como admin para editar.
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Modal de Reinicio -->
     <div id="reset-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center">
-            <h3 class="text-xl font-bold mb-2">¿Reiniciar todo?</h3>
-            <p class="text-slate-500 mb-4 text-sm">Ingresa la clave maestra (8384):</p>
-            <input type="password" id="reset-password-input" class="w-full px-4 py-2 mb-2 rounded-lg border text-center outline-none focus:ring-2 focus:ring-red-500">
-            <p id="reset-error" class="text-red-500 text-xs mb-4 hidden font-semibold">Clave incorrecta</p>
+            <h3 class="text-xl font-bold mb-2">¿Reiniciar base de datos?</h3>
+            <p class="text-slate-500 mb-6 text-sm">Esta acción borrará todos los registros.</p>
             <div class="flex gap-3">
-                <button onclick="closeModal('reset-modal')" class="flex-1 py-2 bg-slate-100 rounded-lg font-semibold">Cancelar</button>
-                <button onclick="clearAllData()" class="flex-1 py-2 bg-red-600 text-white rounded-lg font-semibold">Confirmar</button>
+                <button onclick="closeModal('reset-modal')" class="flex-1 py-2 bg-slate-100 rounded-lg font-bold">Cancelar</button>
+                <button onclick="clearAllData()" class="flex-1 py-2 bg-red-600 text-white rounded-lg font-bold">Sí, borrar</button>
             </div>
         </div>
     </div>
@@ -102,15 +116,14 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // CONFIGURACIÓN DE JORGE
+        // Configuración de Jorge
         const configPropia = {
             apiKey: "AIzaSyB6RK4WYwnnAbZjR2_SmdQGQKP8YWSFFJw",
             authDomain: "loteria-jorge.firebaseapp.com",
             projectId: "loteria-jorge",
             storageBucket: "loteria-jorge.firebasestorage.app",
             messagingSenderId: "190705783808",
-            appId: "1:190705783808:web:c3c004a2371ee21b9934e5",
-            measurementId: "G-X02087Y1FY"
+            appId: "1:190705783808:web:c3c004a2371ee21b9934e5"
         };
 
         const isGemini = typeof __firebase_config !== 'undefined';
@@ -125,8 +138,8 @@
         let lotteryData = {};
         let currentSelectedNumber = null;
         let user = null;
+        let isAdmin = false; // Estado de administrador
 
-        // Regla 1: Ruta estricta para persistencia
         const getDocRef = () => doc(db, 'artifacts', appId, 'public', 'data', 'game_state', 'numbers');
 
         async function init() {
@@ -140,9 +153,7 @@
                     user = u;
                     if (user) listenToData();
                 });
-            } catch (err) {
-                console.error("Error de inicio:", err);
-            }
+            } catch (err) { console.error(err); }
         }
 
         function listenToData() {
@@ -150,9 +161,7 @@
             onSnapshot(getDocRef(), (snapshot) => {
                 lotteryData = snapshot.exists() ? snapshot.data() : {};
                 renderGrid();
-            }, (error) => {
-                console.error("Error Firestore:", error);
-            });
+            }, (error) => console.error(error));
         }
 
         function renderGrid() {
@@ -174,21 +183,63 @@
             return base + "bg-amber-500 text-white border-amber-700 shadow-inner";
         }
 
+        // Función para pedir clave de admin
+        window.askAdmin = () => {
+            const pass = prompt("Ingresa la clave de administrador:");
+            if (pass === "8384") {
+                isAdmin = true;
+                updateAdminUI();
+            } else if (pass !== null) {
+                alert("Clave incorrecta");
+            }
+        };
+
+        function updateAdminUI() {
+            const badge = document.getElementById('role-badge');
+            badge.innerText = "Modo Administrador";
+            badge.className = "bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider";
+            document.getElementById('admin-actions').classList.remove('hidden');
+            document.getElementById('admin-login-btn').classList.add('hidden');
+        }
+
         window.openEditModal = (num) => {
             currentSelectedNumber = num;
             document.getElementById('modal-title').innerText = `Número ${num.toString().padStart(2, '0')}`;
-            const nameInput = document.getElementById('input-name');
-            const statusInput = document.getElementById('input-status');
-            nameInput.value = lotteryData[num] ? lotteryData[num].name : '';
-            statusInput.value = lotteryData[num] ? lotteryData[num].status : 'reserved';
-            document.getElementById('delete-btn').classList.toggle('hidden', !lotteryData[num]);
+            
+            const adminInputs = document.getElementById('admin-inputs');
+            const observerMsg = document.getElementById('observer-msg');
+            const infoDisplay = document.getElementById('info-display');
+
+            if (isAdmin) {
+                adminInputs.classList.remove('hidden');
+                observerMsg.classList.add('hidden');
+                infoDisplay.classList.add('hidden');
+                
+                const data = lotteryData[num] || { name: '', status: 'reserved' };
+                document.getElementById('input-name').value = data.name;
+                document.getElementById('input-status').value = data.status;
+                document.getElementById('delete-btn').classList.toggle('hidden', !lotteryData[num]);
+            } else {
+                adminInputs.classList.add('hidden');
+                observerMsg.classList.toggle('hidden', !!lotteryData[num]);
+                
+                if (lotteryData[num]) {
+                    infoDisplay.classList.remove('hidden');
+                    document.getElementById('display-name').innerText = lotteryData[num].name;
+                    document.getElementById('display-status').innerText = lotteryData[num].status === 'cancelled' ? '✅ PAGADO' : '⏳ APARTADO';
+                    document.getElementById('display-status').className = lotteryData[num].status === 'cancelled' ? 'text-emerald-600 text-sm font-bold mt-1' : 'text-amber-600 text-sm font-bold mt-1';
+                } else {
+                    infoDisplay.classList.add('hidden');
+                    observerMsg.innerText = "Número disponible. Contacta al administrador para apartar.";
+                }
+            }
             document.getElementById('edit-modal').classList.remove('hidden');
-            nameInput.focus();
         };
 
         window.saveData = async () => {
+            if (!isAdmin || !user) return;
             const name = document.getElementById('input-name').value.trim();
-            if (!name || !user) return;
+            if (!name) return;
             showSync(true);
             lotteryData[currentSelectedNumber] = { 
                 name, 
@@ -200,7 +251,7 @@
         };
 
         window.deleteEntry = async () => {
-            if (!user) return;
+            if (!isAdmin || !user) return;
             showSync(true);
             delete lotteryData[currentSelectedNumber];
             await setDoc(getDocRef(), lotteryData);
@@ -209,24 +260,14 @@
         };
 
         window.clearAllData = async () => {
-            if (document.getElementById('reset-password-input').value === '8384') {
-                showSync(true);
-                await deleteDoc(getDocRef());
-                closeModal('reset-modal');
-                showSync(false);
-            } else {
-                document.getElementById('reset-error').classList.remove('hidden');
-            }
+            if (!isAdmin || !user) return;
+            showSync(true);
+            await deleteDoc(getDocRef());
+            closeModal('reset-modal');
+            showSync(false);
         };
 
-        window.closeModal = (id) => {
-            document.getElementById(id).classList.add('hidden');
-            if (id === 'reset-modal') {
-                document.getElementById('reset-password-input').value = '';
-                document.getElementById('reset-error').classList.add('hidden');
-            }
-        };
-
+        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
         window.openResetModal = () => document.getElementById('reset-modal').classList.remove('hidden');
         function showSync(s) { document.getElementById('sync-indicator').classList.toggle('hidden', !s); }
 
