@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lotería en la Nube</title>
+    <title>Lotería de Jorge</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .number-btn {
@@ -39,10 +39,6 @@
             </div>
         </header>
 
-        <div id="setup-warning" class="hidden bg-amber-50 border border-amber-200 p-4 rounded-xl mb-6 text-amber-800 text-sm">
-            <strong>Atención Jorge:</strong> Para que funcione en GitHub, debes colocar tus propias claves de Firebase en el código.
-        </div>
-
         <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-wrap justify-center gap-4 text-sm font-medium">
             <div class="flex items-center gap-2">
                 <div class="w-4 h-4 rounded bg-blue-500"></div>
@@ -59,7 +55,7 @@
         </div>
 
         <div id="number-grid" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 mb-8">
-            <div class="col-span-full text-center py-10 text-slate-400 italic">Conectando...</div>
+            <div class="col-span-full text-center py-10 text-slate-400 italic">Conectando con Firebase...</div>
         </div>
 
         <div class="text-center">
@@ -95,8 +91,8 @@
             <input type="password" id="reset-password-input" class="w-full px-4 py-2 mb-2 rounded-lg border text-center outline-none focus:ring-2 focus:ring-red-500">
             <p id="reset-error" class="text-red-500 text-xs mb-4 hidden font-semibold">Clave incorrecta</p>
             <div class="flex gap-3">
-                <button onclick="closeModal('reset-modal')" class="flex-1 py-2 bg-slate-100 rounded-lg">Cancelar</button>
-                <button onclick="clearAllData()" class="flex-1 py-2 bg-red-600 text-white rounded-lg">Confirmar</button>
+                <button onclick="closeModal('reset-modal')" class="flex-1 py-2 bg-slate-100 rounded-lg font-semibold">Cancelar</button>
+                <button onclick="clearAllData()" class="flex-1 py-2 bg-red-600 text-white rounded-lg font-semibold">Confirmar</button>
             </div>
         </div>
     </div>
@@ -106,26 +102,21 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // CONFIGURACIÓN PARA JORGE:
-        // Si subes esto a GitHub, rellena 'configPropia' con tus datos de Firebase Console
+        // CONFIGURACIÓN DE JORGE
         const configPropia = {
-            apiKey: "",
-            authDomain: "",
-            projectId: "",
-            storageBucket: "",
-            messagingSenderId: "",
-            appId: ""
+            apiKey: "AIzaSyB6RK4WYwnnAbZjR2_SmdQGQKP8YWSFFJw",
+            authDomain: "loteria-jorge.firebaseapp.com",
+            projectId: "loteria-jorge",
+            storageBucket: "loteria-jorge.firebasestorage.app",
+            messagingSenderId: "190705783808",
+            appId: "1:190705783808:web:c3c004a2371ee21b9934e5",
+            measurementId: "G-X02087Y1FY"
         };
 
-        // Detectar si estamos en el entorno de Gemini o en GitHub/Local
         const isGemini = typeof __firebase_config !== 'undefined';
         const firebaseConfig = isGemini ? JSON.parse(__firebase_config) : configPropia;
-        const appId = isGemini ? (typeof __app_id !== 'undefined' ? __app_id : 'loteria-jorge') : 'tu-app-id-real';
+        const appId = isGemini ? (typeof __app_id !== 'undefined' ? __app_id : 'loteria-jorge') : 'loteria-jorge-prod';
         const initialAuthToken = isGemini && typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        if (!firebaseConfig.apiKey && !isGemini) {
-            document.getElementById('setup-warning').classList.remove('hidden');
-        }
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -135,6 +126,7 @@
         let currentSelectedNumber = null;
         let user = null;
 
+        // Regla 1: Ruta estricta para persistencia
         const getDocRef = () => doc(db, 'artifacts', appId, 'public', 'data', 'game_state', 'numbers');
 
         async function init() {
@@ -149,7 +141,7 @@
                     if (user) listenToData();
                 });
             } catch (err) {
-                console.error("Error:", err);
+                console.error("Error de inicio:", err);
             }
         }
 
@@ -158,7 +150,9 @@
             onSnapshot(getDocRef(), (snapshot) => {
                 lotteryData = snapshot.exists() ? snapshot.data() : {};
                 renderGrid();
-            }, (error) => console.error(error));
+            }, (error) => {
+                console.error("Error Firestore:", error);
+            });
         }
 
         function renderGrid() {
@@ -189,13 +183,17 @@
             statusInput.value = lotteryData[num] ? lotteryData[num].status : 'reserved';
             document.getElementById('delete-btn').classList.toggle('hidden', !lotteryData[num]);
             document.getElementById('edit-modal').classList.remove('hidden');
+            nameInput.focus();
         };
 
         window.saveData = async () => {
             const name = document.getElementById('input-name').value.trim();
             if (!name || !user) return;
             showSync(true);
-            lotteryData[currentSelectedNumber] = { name, status: document.getElementById('input-status').value };
+            lotteryData[currentSelectedNumber] = { 
+                name, 
+                status: document.getElementById('input-status').value 
+            };
             await setDoc(getDocRef(), lotteryData);
             closeModal('edit-modal');
             showSync(false);
@@ -221,7 +219,14 @@
             }
         };
 
-        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+        window.closeModal = (id) => {
+            document.getElementById(id).classList.add('hidden');
+            if (id === 'reset-modal') {
+                document.getElementById('reset-password-input').value = '';
+                document.getElementById('reset-error').classList.add('hidden');
+            }
+        };
+
         window.openResetModal = () => document.getElementById('reset-modal').classList.remove('hidden');
         function showSync(s) { document.getElementById('sync-indicator').classList.toggle('hidden', !s); }
 
