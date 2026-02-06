@@ -21,71 +21,46 @@
             display: inline-block;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .search-highlight { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.05); } }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-900 font-sans min-h-screen text-slate-800 dark:text-slate-100 transition-colors duration-200 flex flex-col">
+<body class="bg-slate-50 dark:bg-slate-900 font-sans min-h-screen text-slate-800 dark:text-slate-100 flex flex-col">
 
     <div class="max-w-4xl mx-auto px-4 py-6 flex-grow w-full">
         <header class="text-center mb-6 relative">
-            <button onclick="toggleDarkMode()" class="absolute right-0 top-0 p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 hidden dark:block"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 dark:hidden"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg>
-            </button>
-
-            <h1 class="text-3xl font-extrabold text-blue-600 dark:text-blue-400 tracking-tight mb-2 select-none">Lotería de Cloud</h1>
-            
+            <h1 class="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mb-2">Lotería de Cloud</h1>
             <div class="flex flex-col items-center gap-2">
                 <div class="flex items-center gap-2">
-                    <p id="role-badge" class="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Modo Observador</p>
-                    <div id="sync-indicator" class="hidden text-xs text-blue-500 font-bold"><span class="loader mr-1"></span> Sincronizando...</div>
-                    <div id="offline-badge" class="hidden bg-orange-100 text-orange-600 px-2 py-0.5 rounded text-[9px] font-bold">MODO LOCAL (Sin Nube)</div>
+                    <p id="role-badge" class="bg-slate-200 dark:bg-slate-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase">Modo Observador</p>
+                    <div id="offline-badge" class="hidden bg-orange-100 text-orange-600 px-2 py-0.5 rounded text-[9px] font-bold uppercase">Modo Local Activado</div>
                 </div>
                 <button id="admin-entry-btn" onclick="openModal('login-modal')" class="text-blue-500 text-xs font-bold hover:underline">Acceso Admin</button>
                 <button id="admin-logout-btn" onclick="logoutAdmin()" class="hidden text-red-500 text-xs font-bold hover:underline">Salir</button>
             </div>
         </header>
 
-        <!-- BUSCADOR -->
-        <div class="mb-6">
-            <div class="relative max-w-md mx-auto">
-                <input type="text" id="search-input" oninput="handleSearch()" placeholder="Buscar comprador..." class="w-full pl-10 pr-4 py-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:border-blue-500 outline-none transition-all">
-                <svg class="w-5 h-5 absolute left-3 top-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            </div>
-            <div id="search-results" class="text-center mt-2 text-sm font-medium text-blue-600 dark:text-blue-400 min-h-[20px]"></div>
-        </div>
-
         <div class="flex p-1 bg-slate-200 dark:bg-slate-800 rounded-xl mb-6 max-w-xs mx-auto">
-            <button id="tab-draw1" onclick="switchDraw('draw1')" class="flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm transition-all">Sorteo A</button>
-            <button id="tab-draw2" onclick="switchDraw('draw2')" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 transition-all">Sorteo B</button>
+            <button id="tab-draw1" onclick="switchDraw('draw1')" class="flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm">Sorteo A</button>
+            <button id="tab-draw2" onclick="switchDraw('draw2')" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-500">Sorteo B</button>
         </div>
 
-        <div id="number-grid" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 mb-8">
-            <!-- Grid se genera por JS -->
-        </div>
+        <!-- La cuadrícula SIEMPRE estará aquí -->
+        <div id="number-grid" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 mb-8"></div>
 
-        <!-- PANEL DE RESUMEN (Solo Admin) -->
         <div id="admin-panel" class="hidden space-y-4">
-            <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
-                <h3 class="font-bold mb-4 flex items-center gap-2 text-slate-700 dark:text-slate-200">
-                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-                    Resumen de Compradores
-                </h3>
-                <div id="summary-list" class="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-                    <p class="text-slate-400 text-sm italic text-center">No hay ventas registradas aún.</p>
-                </div>
+            <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
+                <h3 class="font-bold mb-4 text-slate-700 dark:text-slate-200 uppercase text-xs tracking-widest">Resumen de Ventas</h3>
+                <div id="summary-list" class="space-y-2 max-h-60 overflow-y-auto"></div>
             </div>
-            <div class="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800 rounded-2xl p-4 text-center">
-                <button onclick="openResetModal()" class="text-red-600 font-bold text-sm hover:underline">Reiniciar todo el sorteo</button>
+            <div class="text-center">
+                <button onclick="openResetModal()" class="text-red-500 text-[10px] font-bold uppercase tracking-tighter hover:underline">Limpiar datos de este sorteo</button>
             </div>
         </div>
     </div>
 
-    <!-- MODALES (Mantengo los mismos de la versión anterior) -->
+    <!-- Modales -->
     <div id="login-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-3xl p-8 text-center shadow-2xl">
-            <h3 class="text-xl font-bold mb-4">Acceso Maestro</h3>
+            <h3 class="text-xl font-bold mb-4">Acceso Admin</h3>
             <input type="password" id="admin-password-input" placeholder="••••" class="w-full px-4 py-3 rounded-xl border-2 dark:bg-slate-900 text-center text-2xl font-bold mb-4 focus:border-blue-500 outline-none">
             <div class="flex gap-3">
                 <button onclick="closeModal('login-modal')" class="flex-1 py-3 bg-slate-100 dark:bg-slate-700 rounded-xl font-bold">Cerrar</button>
@@ -96,35 +71,29 @@
 
     <div id="edit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl">
-            <div class="flex justify-between items-center mb-6">
-                <h2 id="modal-title" class="text-3xl font-black text-slate-700 dark:text-white">Número --</h2>
-                <button onclick="closeModal('edit-modal')" class="text-slate-400 hover:text-slate-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
+            <h2 id="modal-title" class="text-3xl font-black mb-6">Número --</h2>
             <div id="info-display" class="hidden p-5 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border-2 border-blue-100 dark:border-blue-800 mb-4 text-center">
-                <p class="text-xs font-bold text-blue-500 uppercase">Comprador</p>
                 <p id="display-name" class="text-2xl font-bold text-slate-800 dark:text-blue-300"></p>
-                <div id="display-status-badge" class="mt-3 inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase"></div>
+                <div id="display-status-badge" class="mt-2 inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase"></div>
             </div>
             <div id="admin-inputs" class="hidden space-y-4">
-                <input type="text" id="input-name" placeholder="Nombre del Cliente" class="w-full px-4 py-4 rounded-xl border-2 dark:bg-slate-900 font-bold focus:border-blue-500 outline-none">
+                <input type="text" id="input-name" placeholder="Nombre del Comprador" class="w-full px-4 py-4 rounded-xl border-2 dark:bg-slate-900 font-bold focus:border-blue-500 outline-none">
                 <select id="input-status" class="w-full px-4 py-4 rounded-xl border-2 dark:bg-slate-900 font-bold outline-none">
                     <option value="reserved">⏳ APARTADO</option>
                     <option value="cancelled">✅ PAGADO</option>
                 </select>
-                <button onclick="saveData()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl shadow-xl hover:bg-blue-700">Registrar Venta</button>
-                <button onclick="deleteEntry()" class="w-full text-red-500 py-2 text-[10px] font-black uppercase tracking-widest hover:underline">Liberar número</button>
+                <button onclick="saveData()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl">Guardar Cambios</button>
+                <button onclick="deleteEntry()" class="w-full text-red-500 py-2 text-[10px] font-bold uppercase">Liberar número</button>
             </div>
-            <div id="observer-msg" class="text-slate-400 text-center py-8 hidden italic text-sm">Disponible para el sorteo.</div>
+            <div id="observer-msg" class="text-slate-400 text-center py-8 hidden italic">Número disponible.</div>
+            <button onclick="closeModal('edit-modal')" class="w-full mt-4 py-2 text-slate-400 text-xs">Cerrar</button>
         </div>
     </div>
 
     <div id="reset-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-3xl p-8 text-center">
-            <h3 class="text-xl font-bold mb-2">¡Cuidado!</h3>
-            <p class="text-slate-500 text-sm mb-6">Se borrarán los datos de este sorteo.</p>
-            <button onclick="clearAllData()" class="w-full py-4 bg-red-600 text-white rounded-xl font-bold mb-2">Borrar Todo</button>
+            <h3 class="text-xl font-bold mb-6">¿Borrar todo el sorteo?</h3>
+            <button onclick="clearAllData()" class="w-full py-4 bg-red-600 text-white rounded-xl font-bold mb-2">Sí, borrar</button>
             <button onclick="closeModal('reset-modal')" class="w-full py-3 bg-slate-100 dark:bg-slate-700 rounded-xl font-bold">Cancelar</button>
         </div>
     </div>
@@ -132,7 +101,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, setDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = JSON.parse(__firebase_config);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'loteria-jorge-pro';
@@ -143,79 +112,10 @@
         let lotteryData = {};
         let currentDraw = 'draw1';
         let currentSelectedNumber = null;
-        let user = null;
         let isAdmin = false;
         let unsubscribe = null;
-        let isOffline = false;
 
-        const getDocRef = () => doc(db, 'artifacts', appId, 'public', 'data', 'lottery_state', currentDraw);
-
-        // Lógica de Almacenamiento Local (Backup)
-        function loadLocalData() {
-            const saved = localStorage.getItem(`loteria_${appId}_${currentDraw}`);
-            return saved ? JSON.parse(saved) : {};
-        }
-
-        function saveLocalData(data) {
-            localStorage.setItem(`loteria_${appId}_${currentDraw}`, JSON.stringify(data));
-        }
-
-        async function init() {
-            // Carga inicial rápida desde Memoria Local para evitar el "Conectando..." infinito
-            lotteryData = loadLocalData();
-            renderGrid();
-            updateSummary();
-
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                onAuthStateChanged(auth, (u) => {
-                    user = u;
-                    if (user) listenToData();
-                });
-            } catch (err) {
-                activateOfflineMode();
-            }
-        }
-
-        function activateOfflineMode() {
-            isOffline = true;
-            document.getElementById('offline-badge').classList.remove('hidden');
-            showSync(false);
-            // Si falla la nube, nos quedamos con lo que hay en local
-            lotteryData = loadLocalData();
-            renderGrid();
-            updateSummary();
-        }
-
-        function listenToData() {
-            if (!user) return;
-            if (unsubscribe) unsubscribe();
-            showSync(true);
-
-            unsubscribe = onSnapshot(getDocRef(), (snapshot) => {
-                isOffline = false;
-                document.getElementById('offline-badge').classList.add('hidden');
-                
-                if (snapshot.exists()) {
-                    lotteryData = snapshot.data();
-                    saveLocalData(lotteryData); // Respaldamos en local lo que viene de la nube
-                } else {
-                    lotteryData = {};
-                }
-                renderGrid();
-                updateSummary();
-                handleSearch();
-                showSync(false);
-            }, (error) => {
-                console.error("Fallo de conexión a Nube:", error);
-                activateOfflineMode();
-            });
-        }
-
+        // --- 1. FUNCIÓN QUE DIBUJA LOS NÚMEROS (Independiente) ---
         function renderGrid() {
             const grid = document.getElementById('number-grid');
             grid.innerHTML = '';
@@ -223,157 +123,146 @@
                 const btn = document.createElement('button');
                 btn.id = `btn-${i}`;
                 btn.innerText = i.toString().padStart(2, '0');
-                btn.className = getNumberClass(i);
+                
+                // Clases visuales
+                const base = "number-btn h-12 flex items-center justify-center rounded-xl font-black text-lg border-b-4 transition-all ";
+                let colors = "bg-white dark:bg-slate-800 text-blue-500 border-slate-200 dark:border-slate-700/50 hover:border-blue-400";
+                
+                if (lotteryData[i]) {
+                    if (lotteryData[i].status === 'cancelled') {
+                        colors = "bg-emerald-500 text-white border-emerald-700 shadow-lg";
+                    } else {
+                        colors = "bg-amber-500 text-white border-amber-700 shadow-lg";
+                    }
+                }
+                
+                btn.className = base + colors;
                 btn.onclick = () => openEditModal(i);
                 grid.appendChild(btn);
             }
         }
 
-        function getNumberClass(num) {
-            const base = "number-btn h-12 flex items-center justify-center rounded-xl font-black text-lg border-b-4 transition-all ";
-            if (!lotteryData[num]) return base + "bg-white dark:bg-slate-800 text-blue-500 border-slate-200 dark:border-slate-700/50 hover:border-blue-400";
-            if (lotteryData[num].status === 'cancelled') return base + "bg-emerald-500 text-white border-emerald-700 shadow-lg";
-            return base + "bg-amber-500 text-white border-amber-700 shadow-lg";
-        }
-
-        window.handleSearch = () => {
-            const query = document.getElementById('search-input').value.toLowerCase().trim();
-            const resultsArea = document.getElementById('search-results');
-            document.querySelectorAll('.number-btn').forEach(b => b.classList.remove('search-highlight', 'ring-4', 'ring-blue-400', 'scale-110', 'z-10'));
-
-            if (!query) { resultsArea.innerText = ''; return; }
-            const matchedNumbers = Object.entries(lotteryData)
-                .filter(([_, data]) => data.name.toLowerCase().includes(query))
-                .map(([num, _]) => num);
-
-            if (matchedNumbers.length > 0) {
-                resultsArea.innerText = `Encontrado para "${query}": ${matchedNumbers.map(n => n.toString().padStart(2, '0')).join(', ')}`;
-                matchedNumbers.forEach(num => {
-                    const btn = document.getElementById(`btn-${num}`);
-                    if (btn) btn.classList.add('search-highlight', 'ring-4', 'ring-blue-400', 'scale-110', 'z-10');
-                });
-            } else { resultsArea.innerText = 'Sin coincidencias.'; }
-        };
-
-        function updateSummary() {
-            const summaryArea = document.getElementById('summary-list');
-            if (!isAdmin) { summaryArea.innerHTML = ''; return; }
-            const summary = {};
-            Object.entries(lotteryData).forEach(([num, data]) => {
-                if (!summary[data.name]) summary[data.name] = [];
-                summary[data.name].push(num.toString().padStart(2, '0'));
-            });
-            const sortedNames = Object.keys(summary).sort();
-            if (sortedNames.length === 0) {
-                summaryArea.innerHTML = '<p class="text-slate-400 text-sm italic text-center">Sin ventas.</p>';
-                return;
-            }
-            summaryArea.innerHTML = sortedNames.map(name => `
-                <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border dark:border-slate-800">
-                    <div>
-                        <p class="font-bold text-sm text-blue-600 dark:text-blue-400">${name}</p>
-                        <p class="text-[10px] text-slate-400">${summary[name].join(', ')}</p>
-                    </div>
-                    <span class="bg-blue-100 dark:bg-blue-900 text-blue-600 px-2 py-1 rounded-lg text-xs font-bold">${summary[name].length}</span>
-                </div>
-            `).join('');
-        }
-
-        window.switchDraw = (drawId) => {
-            if (currentDraw === drawId) return;
-            currentDraw = drawId;
-            const isD1 = drawId === 'draw1';
-            document.getElementById('tab-draw1').className = isD1 ? "flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm transition-all" : "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 transition-all";
-            document.getElementById('tab-draw2').className = !isD1 ? "flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm transition-all" : "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 transition-all";
-            
-            // Carga local inmediata antes de esperar a la nube
-            lotteryData = loadLocalData();
+        // --- 2. CARGA LOCAL (Plan B) ---
+        function loadLocal() {
+            const saved = localStorage.getItem(`local_loteria_${appId}_${currentDraw}`);
+            lotteryData = saved ? JSON.parse(saved) : {};
             renderGrid();
             updateSummary();
-            listenToData();
-        };
+        }
 
+        function saveLocal() {
+            localStorage.setItem(`local_loteria_${appId}_${currentDraw}`, JSON.stringify(lotteryData));
+        }
+
+        // --- 3. CONEXIÓN A NUBE ---
+        async function init() {
+            loadLocal(); // Dibujamos primero lo que tengamos en PC
+            
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                onAuthStateChanged(auth, (u) => {
+                    if (u) connectCloud();
+                });
+            } catch (err) {
+                document.getElementById('offline-badge').classList.remove('hidden');
+            }
+        }
+
+        function connectCloud() {
+            if (unsubscribe) unsubscribe();
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'lottery_state', currentDraw);
+            
+            unsubscribe = onSnapshot(docRef, (snap) => {
+                if (snap.exists()) {
+                    lotteryData = snap.data();
+                    saveLocal(); // Actualizamos PC con lo de la nube
+                    renderGrid();
+                    updateSummary();
+                }
+            }, (error) => {
+                console.error("Nube bloqueada. Usando solo memoria local.");
+                document.getElementById('offline-badge').classList.remove('hidden');
+            });
+        }
+
+        // --- 4. ACCIONES ---
         window.saveData = async () => {
-            if (!isAdmin) return;
             const name = document.getElementById('input-name').value.trim();
             if (!name) return;
-            
             lotteryData[currentSelectedNumber] = { name, status: document.getElementById('input-status').value };
             
-            // Guardado Local SIEMPRE (Inmediato)
-            saveLocalData(lotteryData);
             renderGrid();
             updateSummary();
-            
-            // Guardado en Nube si es posible
-            if (!isOffline && user) {
-                showSync(true);
-                try { await setDoc(getDocRef(), lotteryData); } catch(e) { console.warn("Guardado en nube falló, queda en local."); }
-                showSync(false);
+            saveLocal();
+
+            // Intentar subir a nube
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'lottery_state', currentDraw);
+                await setDoc(docRef, lotteryData);
+            } catch (e) {
+                console.warn("No se pudo subir a la nube, quedó guardado en tu PC.");
             }
             closeModal('edit-modal');
         };
 
         window.deleteEntry = async () => {
-            if (!isAdmin) return;
             delete lotteryData[currentSelectedNumber];
-            saveLocalData(lotteryData);
             renderGrid();
             updateSummary();
-            if (!isOffline && user) {
-                showSync(true);
-                try { await setDoc(getDocRef(), lotteryData); } catch(e) {}
-                showSync(false);
-            }
+            saveLocal();
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'lottery_state', currentDraw);
+                await setDoc(docRef, lotteryData);
+            } catch (e) {}
             closeModal('edit-modal');
         };
 
-        window.clearAllData = async () => {
-            if (!isAdmin) return;
-            lotteryData = {};
-            saveLocalData(lotteryData);
-            renderGrid();
-            updateSummary();
-            if (!isOffline && user) {
-                try { await deleteDoc(getDocRef()); } catch(e) {}
-            }
-            closeModal('reset-modal');
+        window.switchDraw = (draw) => {
+            currentDraw = draw;
+            document.getElementById('tab-draw1').classList.toggle('bg-white', draw==='draw1');
+            document.getElementById('tab-draw2').classList.toggle('bg-white', draw==='draw2');
+            loadLocal();
+            connectCloud();
         };
 
         window.checkAdminPassword = () => {
             if (document.getElementById('admin-password-input').value === "8384") {
                 isAdmin = true;
                 document.getElementById('role-badge').innerText = "Admin Maestro";
-                document.getElementById('role-badge').className = "bg-blue-600 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest";
                 document.getElementById('admin-panel').classList.remove('hidden');
                 document.getElementById('admin-entry-btn').classList.add('hidden');
                 document.getElementById('admin-logout-btn').classList.remove('hidden');
-                updateSummary();
                 closeModal('login-modal');
                 renderGrid();
+                updateSummary();
             }
         };
 
         window.openEditModal = (num) => {
             currentSelectedNumber = num;
             document.getElementById('modal-title').innerText = `Número ${num.toString().padStart(2, '0')}`;
+            const data = lotteryData[num];
+
             if (isAdmin) {
                 document.getElementById('admin-inputs').classList.remove('hidden');
                 document.getElementById('info-display').classList.add('hidden');
                 document.getElementById('observer-msg').classList.add('hidden');
-                const data = lotteryData[num] || { name: '', status: 'reserved' };
-                document.getElementById('input-name').value = data.name;
-                document.getElementById('input-status').value = data.status;
+                document.getElementById('input-name').value = data ? data.name : '';
+                document.getElementById('input-status').value = data ? data.status : 'reserved';
             } else {
                 document.getElementById('admin-inputs').classList.add('hidden');
-                if (lotteryData[num]) {
+                if (data) {
                     document.getElementById('info-display').classList.remove('hidden');
                     document.getElementById('observer-msg').classList.add('hidden');
-                    document.getElementById('display-name').innerText = lotteryData[num].name;
-                    const isPaid = lotteryData[num].status === 'cancelled';
+                    document.getElementById('display-name').innerText = data.name;
+                    const isPaid = data.status === 'cancelled';
                     const badge = document.getElementById('display-status-badge');
-                    badge.innerText = isPaid ? '✅ PAGADO' : '⏳ APARTADO';
-                    badge.className = isPaid ? "mt-3 inline-block px-3 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-600" : "mt-3 inline-block px-3 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-600";
+                    badge.innerText = isPaid ? 'PAGADO' : 'APARTADO';
+                    badge.className = isPaid ? "mt-2 inline-block px-3 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-600" : "mt-2 inline-block px-3 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-600";
                 } else {
                     document.getElementById('info-display').classList.add('hidden');
                     document.getElementById('observer-msg').classList.remove('hidden');
@@ -382,12 +271,25 @@
             openModal('edit-modal');
         };
 
-        window.logoutAdmin = () => location.reload();
-        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+        function updateSummary() {
+            const list = document.getElementById('summary-list');
+            if (!isAdmin) return;
+            const names = {};
+            Object.values(lotteryData).forEach(d => names[d.name] = (names[d.name] || 0) + 1);
+            list.innerHTML = Object.keys(names).map(n => `<div class="flex justify-between p-2 bg-slate-100 dark:bg-slate-900 rounded-lg mb-1"><span class="font-bold text-xs">${n}</span><span class="text-xs">${names[n]} núm.</span></div>`).join('');
+        }
+
         window.openModal = (id) => document.getElementById(id).classList.remove('hidden');
-        window.openResetModal = () => openModal('reset-modal');
-        window.toggleDarkMode = () => document.documentElement.classList.toggle('dark');
-        function showSync(s) { document.getElementById('sync-indicator').classList.toggle('hidden', !s); }
+        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+        window.logoutAdmin = () => location.reload();
+        window.clearAllData = async () => {
+            lotteryData = {};
+            saveLocal();
+            renderGrid();
+            updateSummary();
+            try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'lottery_state', currentDraw)); } catch(e) {}
+            closeModal('reset-modal');
+        }
 
         init();
     </script>
