@@ -11,16 +11,6 @@
     <style>
         .number-btn { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .number-btn:active { transform: scale(0.9); }
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3b82f6;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 font-sans min-h-screen text-slate-800 dark:text-slate-100 flex flex-col">
@@ -31,7 +21,7 @@
             <div class="flex flex-col items-center gap-2">
                 <div class="flex items-center gap-2">
                     <p id="role-badge" class="bg-slate-200 dark:bg-slate-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase">Modo Observador</p>
-                    <div id="offline-badge" class="hidden bg-orange-100 text-orange-600 px-2 py-0.5 rounded text-[9px] font-bold uppercase">Modo Local Activado</div>
+                    <div id="offline-badge" class="hidden bg-orange-100 text-orange-600 px-2 py-0.5 rounded text-[9px] font-bold uppercase">Modo Local</div>
                 </div>
                 <button id="admin-entry-btn" onclick="openModal('login-modal')" class="text-blue-500 text-xs font-bold hover:underline">Acceso Admin</button>
                 <button id="admin-logout-btn" onclick="logoutAdmin()" class="hidden text-red-500 text-xs font-bold hover:underline">Salir</button>
@@ -47,7 +37,7 @@
 
         <div id="admin-panel" class="hidden space-y-4">
             <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
-                <h3 class="font-bold mb-4 text-slate-700 dark:text-slate-200 uppercase text-xs tracking-widest">Resumen de Ventas</h3>
+                <h3 class="font-bold mb-4 text-slate-700 dark:text-slate-200 uppercase text-xs tracking-widest text-center">Resumen de Ventas</h3>
                 <div id="summary-list" class="space-y-2 max-h-60 overflow-y-auto"></div>
             </div>
             <div class="text-center">
@@ -60,7 +50,7 @@
     <div id="login-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-3xl p-8 text-center shadow-2xl">
             <h3 class="text-xl font-bold mb-4">Acceso Admin</h3>
-            <input type="password" id="admin-password-input" placeholder="••••" class="w-full px-4 py-3 rounded-xl border-2 dark:bg-slate-900 text-center text-2xl font-bold mb-4 focus:border-blue-500 outline-none">
+            <input type="password" id="admin-password-input" placeholder="••••" class="w-full px-4 py-3 rounded-xl border-2 dark:bg-slate-900 text-center text-2xl font-bold mb-4 outline-none">
             <div class="flex gap-3">
                 <button onclick="closeModal('login-modal')" class="flex-1 py-3 bg-slate-100 dark:bg-slate-700 rounded-xl font-bold">Cerrar</button>
                 <button onclick="checkAdminPassword()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold">Entrar</button>
@@ -114,8 +104,10 @@
         let isAdmin = false;
         let unsubscribe = null;
 
+        // Dibuja los botones del 00 al 99
         function renderGrid() {
             const grid = document.getElementById('number-grid');
+            if(!grid) return;
             grid.innerHTML = '';
             for (let i = 0; i <= 99; i++) {
                 const btn = document.createElement('button');
@@ -123,9 +115,11 @@
                 btn.innerText = i.toString().padStart(2, '0');
                 const base = "number-btn h-12 flex items-center justify-center rounded-xl font-black text-lg border-b-4 transition-all ";
                 let colors = "bg-white dark:bg-slate-800 text-blue-500 border-slate-200 dark:border-slate-700/50 hover:border-blue-400";
+                
                 if (lotteryData[i]) {
                     colors = lotteryData[i].status === 'cancelled' ? "bg-emerald-500 text-white border-emerald-700 shadow-lg" : "bg-amber-500 text-white border-amber-700 shadow-lg";
                 }
+                
                 btn.className = base + colors;
                 btn.onclick = () => openEditModal(i);
                 grid.appendChild(btn);
@@ -143,15 +137,20 @@
             localStorage.setItem(`local_loteria_${appId}_${currentDraw}`, JSON.stringify(lotteryData));
         }
 
+        // Se ejecuta al cargar la página
         async function init() {
-            loadLocal();
+            renderGrid(); // Dibuja la cuadrícula vacía primero
+            loadLocal();  // Carga lo que hay en el PC (memoria rápida)
+            
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
-                onAuthStateChanged(auth, (u) => { if (u) connectCloud(); });
+                onAuthStateChanged(auth, (user) => {
+                    if (user) connectCloud();
+                });
             } catch (err) {
                 document.getElementById('offline-badge').classList.remove('hidden');
             }
@@ -160,10 +159,11 @@
         function connectCloud() {
             if (unsubscribe) unsubscribe();
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'lottery_state', currentDraw);
+            
             unsubscribe = onSnapshot(docRef, (snap) => {
                 if (snap.exists()) {
                     lotteryData = snap.data();
-                    saveLocal();
+                    saveLocal(); // Sincroniza memoria local con la nube
                     renderGrid();
                     updateSummary();
                 }
@@ -175,13 +175,20 @@
         window.saveData = async () => {
             const name = document.getElementById('input-name').value.trim();
             if (!name) return;
-            lotteryData[currentSelectedNumber] = { name, status: document.getElementById('input-status').value };
+            lotteryData[currentSelectedNumber] = { 
+                name: name, 
+                status: document.getElementById('input-status').value 
+            };
+            
             renderGrid();
             updateSummary();
             saveLocal();
+            
             try {
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'lottery_state', currentDraw), lotteryData);
-            } catch (e) {}
+            } catch (e) {
+                console.error("Error al subir a la nube:", e);
+            }
             closeModal('edit-modal');
         };
 
@@ -198,8 +205,8 @@
 
         window.switchDraw = (draw) => {
             currentDraw = draw;
-            document.getElementById('tab-draw1').classList.toggle('bg-white', draw==='draw1');
-            document.getElementById('tab-draw2').classList.toggle('bg-white', draw==='draw2');
+            document.getElementById('tab-draw1').className = draw==='draw1' ? "flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm" : "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500";
+            document.getElementById('tab-draw2').className = draw==='draw2' ? "flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm" : "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500";
             loadLocal();
             connectCloud();
         };
@@ -221,6 +228,7 @@
             currentSelectedNumber = num;
             document.getElementById('modal-title').innerText = `Número ${num.toString().padStart(2, '0')}`;
             const data = lotteryData[num];
+
             if (isAdmin) {
                 document.getElementById('admin-inputs').classList.remove('hidden');
                 document.getElementById('info-display').classList.add('hidden');
@@ -247,10 +255,12 @@
 
         function updateSummary() {
             const list = document.getElementById('summary-list');
-            if (!isAdmin) return;
+            if (!isAdmin || !list) return;
             const names = {};
             Object.values(lotteryData).forEach(d => names[d.name] = (names[d.name] || 0) + 1);
-            list.innerHTML = Object.keys(names).map(n => `<div class="flex justify-between p-2 bg-slate-100 dark:bg-slate-900 rounded-lg mb-1"><span class="font-bold text-xs">${n}</span><span class="text-xs">${names[n]} núm.</span></div>`).join('');
+            list.innerHTML = Object.keys(names).length > 0 
+                ? Object.keys(names).map(n => `<div class="flex justify-between p-2 bg-slate-100 dark:bg-slate-900 rounded-lg mb-1"><span class="font-bold text-xs">${n}</span><span class="text-xs font-bold text-blue-500">${names[n]} núm.</span></div>`).join('')
+                : `<p class="text-center text-slate-400 text-xs py-4">No hay ventas registradas</p>`;
         }
 
         window.openModal = (id) => document.getElementById(id).classList.remove('hidden');
@@ -264,6 +274,7 @@
             try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'lottery_state', currentDraw)); } catch(e) {}
             closeModal('reset-modal');
         }
+
         init();
     </script>
 </body>
