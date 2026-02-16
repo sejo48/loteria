@@ -6,6 +6,12 @@
     <title>Lotería de Cloud (Local)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        // Configuración inicial del tema antes de que cargue el body para evitar parpadeos
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
         tailwind.config = { darkMode: 'class' }
     </script>
     <style>
@@ -14,7 +20,17 @@
         .number-hidden { display: none !important; }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-900 font-sans min-h-screen text-slate-800 dark:text-slate-100 flex flex-col">
+<body class="bg-slate-50 dark:bg-slate-900 font-sans min-h-screen text-slate-800 dark:text-slate-100 flex flex-col transition-colors duration-300">
+
+    <!-- Botón Flotante Modo Oscuro/Claro -->
+    <button onclick="toggleTheme()" class="fixed top-4 right-4 z-50 p-3 rounded-full bg-white dark:bg-slate-800 shadow-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-amber-400 hover:scale-110 transition-all">
+        <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 9h-1m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+        </svg>
+        <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+    </button>
 
     <div class="max-w-4xl mx-auto px-4 py-6 flex-grow w-full">
         <header class="text-center mb-6 relative">
@@ -22,7 +38,7 @@
             <div class="flex flex-col items-center gap-2">
                 <div class="flex items-center gap-2">
                     <p id="role-badge" class="bg-slate-200 dark:bg-slate-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase">Modo Observador</p>
-                    <div class="bg-green-100 text-green-600 px-2 py-0.5 rounded text-[9px] font-bold uppercase shadow-sm">Guardado en PC</div>
+                    <div class="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-2 py-0.5 rounded text-[9px] font-bold uppercase shadow-sm">Guardado en PC</div>
                 </div>
                 <button id="admin-entry-btn" onclick="openModal('login-modal')" class="text-blue-500 text-xs font-bold hover:underline">Acceso Admin</button>
                 <button id="admin-logout-btn" onclick="logoutAdmin()" class="hidden text-red-500 text-xs font-bold hover:underline">Salir de Admin</button>
@@ -32,7 +48,7 @@
         <!-- Selector de Sorteo -->
         <div class="flex p-1 bg-slate-200 dark:bg-slate-800 rounded-xl mb-4 max-w-xs mx-auto">
             <button id="tab-draw1" onclick="switchDraw('draw1')" class="flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm transition-all">Sorteo A</button>
-            <button id="tab-draw2" onclick="switchDraw('draw2')" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 transition-all">Sorteo B</button>
+            <button id="tab-draw2" onclick="switchDraw('draw2')" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 dark:text-slate-400 transition-all">Sorteo B</button>
         </div>
 
         <!-- Buscador de Jugador -->
@@ -55,7 +71,7 @@
             
             <div class="flex flex-col gap-2 items-center pt-4">
                 <button onclick="openModal('reset-draw-modal')" class="text-amber-600 text-[10px] font-bold uppercase tracking-tight hover:underline">Vaciar Sorteo Actual</button>
-                <button onclick="openModal('full-reset-modal')" class="text-red-600 text-[11px] font-black uppercase tracking-widest hover:scale-105 transition-transform mt-4 border-2 border-red-100 px-4 py-2 rounded-full">⚠️ Reiniciar Aplicación a Cero</button>
+                <button onclick="openModal('full-reset-modal')" class="text-red-600 text-[11px] font-black uppercase tracking-widest hover:scale-105 transition-transform mt-4 border-2 border-red-100 dark:border-red-900/30 px-4 py-2 rounded-full">⚠️ Reiniciar Aplicación a Cero</button>
             </div>
         </div>
     </div>
@@ -64,7 +80,7 @@
     <div id="login-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-3xl p-8 text-center shadow-2xl">
             <h3 class="text-xl font-bold mb-4">Acceso Admin</h3>
-            <input type="password" id="admin-password-input" placeholder="••••" class="w-full px-4 py-3 rounded-xl border-2 dark:bg-slate-900 text-center text-2xl font-bold mb-4 outline-none">
+            <input type="password" id="admin-password-input" placeholder="••••" class="w-full px-4 py-3 rounded-xl border-2 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-center text-2xl font-bold mb-4 outline-none">
             <div class="flex gap-3">
                 <button onclick="closeModal('login-modal')" class="flex-1 py-3 bg-slate-100 dark:bg-slate-700 rounded-xl font-bold">Cerrar</button>
                 <button onclick="checkAdminPassword()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold">Entrar</button>
@@ -80,8 +96,8 @@
                 <div id="display-status-badge" class="mt-2 inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase"></div>
             </div>
             <div id="admin-inputs" class="hidden space-y-4">
-                <input type="text" id="input-name" placeholder="Nombre del Comprador" class="w-full px-4 py-4 rounded-xl border-2 dark:bg-slate-900 font-bold focus:border-blue-500 outline-none">
-                <select id="input-status" class="w-full px-4 py-4 rounded-xl border-2 dark:bg-slate-900 font-bold outline-none">
+                <input type="text" id="input-name" placeholder="Nombre del Comprador" class="w-full px-4 py-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 dark:bg-slate-900 font-bold focus:border-blue-500 outline-none">
+                <select id="input-status" class="w-full px-4 py-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 dark:bg-slate-900 font-bold outline-none">
                     <option value="reserved">⏳ APARTADO</option>
                     <option value="cancelled">✅ PAGADO</option>
                 </select>
@@ -89,7 +105,7 @@
                 <button onclick="deleteEntry()" class="w-full text-red-500 py-2 text-[10px] font-bold uppercase mt-2">Liberar número</button>
             </div>
             <div id="observer-msg" class="text-slate-400 text-center py-8 hidden italic">Número disponible para compra.</div>
-            <button onclick="closeModal('edit-modal')" class="w-full mt-4 py-2 text-slate-400 text-xs font-bold">CERRAR</button>
+            <button onclick="closeModal('edit-modal')" class="w-full mt-4 py-2 text-slate-400 text-xs font-bold uppercase">CERRAR</button>
         </div>
     </div>
 
@@ -119,6 +135,17 @@
         let currentSelectedNumber = null;
         let isAdmin = false;
 
+        // Función para cambiar el tema
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
         function renderGrid() {
             const grid = document.getElementById('number-grid');
             if(!grid) return;
@@ -128,7 +155,7 @@
                 btn.id = `btn-${i}`;
                 btn.innerText = i.toString().padStart(2, '0');
                 const base = "number-btn h-12 flex items-center justify-center rounded-xl font-black text-lg border-b-4 transition-all ";
-                let colors = "bg-white dark:bg-slate-800 text-blue-500 border-slate-200 dark:border-slate-700/50 hover:border-blue-400";
+                let colors = "bg-white dark:bg-slate-800 text-blue-500 dark:text-blue-400 border-slate-200 dark:border-slate-700 hover:border-blue-400";
                 
                 if (lotteryData[i]) {
                     colors = lotteryData[i].status === 'cancelled' ? "bg-emerald-500 text-white border-emerald-700 shadow-lg" : "bg-amber-500 text-white border-amber-700 shadow-lg";
@@ -195,8 +222,8 @@
         window.switchDraw = (draw) => {
             currentDraw = draw;
             document.getElementById('search-input').value = "";
-            document.getElementById('tab-draw1').className = draw==='draw1' ? "flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm" : "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500";
-            document.getElementById('tab-draw2').className = draw==='draw2' ? "flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm" : "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500";
+            document.getElementById('tab-draw1').className = draw==='draw1' ? "flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm" : "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 dark:text-slate-400";
+            document.getElementById('tab-draw2').className = draw==='draw2' ? "flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm" : "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 dark:text-slate-400";
             loadLocal();
         };
 
@@ -233,7 +260,7 @@
                     const isPaid = data.status === 'cancelled';
                     const b = document.getElementById('display-status-badge');
                     b.innerText = isPaid ? 'PAGADO' : 'APARTADO';
-                    b.className = isPaid ? "mt-2 inline-block px-3 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-600" : "mt-2 inline-block px-3 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-600";
+                    b.className = isPaid ? "mt-2 inline-block px-3 py-1 rounded-full text-[10px] font-black bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400" : "mt-2 inline-block px-3 py-1 rounded-full text-[10px] font-black bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400";
                 } else {
                     document.getElementById('info-display').classList.add('hidden');
                     document.getElementById('observer-msg').classList.remove('hidden');
@@ -257,7 +284,6 @@
         window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
         window.logoutAdmin = () => location.reload();
 
-        // Borrar sorteo actual
         window.clearCurrentDraw = () => {
             lotteryData = {};
             saveLocal();
@@ -266,7 +292,6 @@
             closeModal('reset-draw-modal');
         };
 
-        // Reinicio total (Fábrica)
         window.factoryReset = () => {
             localStorage.clear();
             location.reload();
