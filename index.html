@@ -11,7 +11,7 @@
     <style>
         .number-btn { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .number-btn:active { transform: scale(0.9); }
-        .number-hidden { display: none; }
+        .number-hidden { display: none !important; }
     </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 font-sans min-h-screen text-slate-800 dark:text-slate-100 flex flex-col">
@@ -22,22 +22,22 @@
             <div class="flex flex-col items-center gap-2">
                 <div class="flex items-center gap-2">
                     <p id="role-badge" class="bg-slate-200 dark:bg-slate-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase">Modo Observador</p>
-                    <div class="bg-green-100 text-green-600 px-2 py-0.5 rounded text-[9px] font-bold uppercase">Guardado en PC</div>
+                    <div class="bg-green-100 text-green-600 px-2 py-0.5 rounded text-[9px] font-bold uppercase shadow-sm">Guardado en PC</div>
                 </div>
                 <button id="admin-entry-btn" onclick="openModal('login-modal')" class="text-blue-500 text-xs font-bold hover:underline">Acceso Admin</button>
-                <button id="admin-logout-btn" onclick="logoutAdmin()" class="hidden text-red-500 text-xs font-bold hover:underline">Salir</button>
+                <button id="admin-logout-btn" onclick="logoutAdmin()" class="hidden text-red-500 text-xs font-bold hover:underline">Salir de Admin</button>
             </div>
         </header>
 
         <!-- Selector de Sorteo -->
         <div class="flex p-1 bg-slate-200 dark:bg-slate-800 rounded-xl mb-4 max-w-xs mx-auto">
-            <button id="tab-draw1" onclick="switchDraw('draw1')" class="flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm">Sorteo A</button>
-            <button id="tab-draw2" onclick="switchDraw('draw2')" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-500">Sorteo B</button>
+            <button id="tab-draw1" onclick="switchDraw('draw1')" class="flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm transition-all">Sorteo A</button>
+            <button id="tab-draw2" onclick="switchDraw('draw2')" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 transition-all">Sorteo B</button>
         </div>
 
         <!-- Buscador de Jugador -->
         <div class="mb-6 max-w-md mx-auto relative">
-            <input type="text" id="search-input" oninput="filterGrid()" placeholder="Buscar por nombre de jugador..." class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 dark:bg-slate-800 font-bold outline-none focus:border-blue-500 transition-colors shadow-sm">
+            <input type="text" id="search-input" oninput="filterGrid()" placeholder="Buscar jugador (ej: Jorge)..." class="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 dark:bg-slate-800 font-bold outline-none focus:border-blue-500 transition-all shadow-sm">
             <div class="absolute right-4 top-3.5 text-slate-400">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -48,12 +48,14 @@
         <div id="number-grid" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 mb-8"></div>
 
         <div id="admin-panel" class="hidden space-y-4">
-            <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
+            <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
                 <h3 class="font-bold mb-4 text-slate-700 dark:text-slate-200 uppercase text-xs tracking-widest text-center">Resumen de Ventas</h3>
                 <div id="summary-list" class="space-y-2 max-h-60 overflow-y-auto"></div>
             </div>
-            <div class="text-center">
-                <button onclick="openModal('reset-modal')" class="text-red-500 text-[10px] font-bold uppercase tracking-tighter hover:underline">Limpiar datos de este sorteo</button>
+            
+            <div class="flex flex-col gap-2 items-center pt-4">
+                <button onclick="openModal('reset-draw-modal')" class="text-amber-600 text-[10px] font-bold uppercase tracking-tight hover:underline">Vaciar Sorteo Actual</button>
+                <button onclick="openModal('full-reset-modal')" class="text-red-600 text-[11px] font-black uppercase tracking-widest hover:scale-105 transition-transform mt-4 border-2 border-red-100 px-4 py-2 rounded-full">⚠️ Reiniciar Aplicación a Cero</button>
             </div>
         </div>
     </div>
@@ -72,7 +74,7 @@
 
     <div id="edit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl">
-            <h2 id="modal-title" class="text-3xl font-black mb-6">Número --</h2>
+            <h2 id="modal-title" class="text-3xl font-black mb-6 text-center">Número --</h2>
             <div id="info-display" class="hidden p-5 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border-2 border-blue-100 dark:border-blue-800 mb-4 text-center">
                 <p id="display-name" class="text-2xl font-bold text-slate-800 dark:text-blue-300"></p>
                 <div id="display-status-badge" class="mt-2 inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase"></div>
@@ -83,19 +85,31 @@
                     <option value="reserved">⏳ APARTADO</option>
                     <option value="cancelled">✅ PAGADO</option>
                 </select>
-                <button onclick="saveData()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl">Guardar Cambios</button>
-                <button onclick="deleteEntry()" class="w-full text-red-500 py-2 text-[10px] font-bold uppercase">Liberar número</button>
+                <button onclick="saveData()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl shadow-lg shadow-blue-200 dark:shadow-none">Guardar Cambios</button>
+                <button onclick="deleteEntry()" class="w-full text-red-500 py-2 text-[10px] font-bold uppercase mt-2">Liberar número</button>
             </div>
-            <div id="observer-msg" class="text-slate-400 text-center py-8 hidden italic">Número disponible.</div>
-            <button onclick="closeModal('edit-modal')" class="w-full mt-4 py-2 text-slate-400 text-xs">Cerrar</button>
+            <div id="observer-msg" class="text-slate-400 text-center py-8 hidden italic">Número disponible para compra.</div>
+            <button onclick="closeModal('edit-modal')" class="w-full mt-4 py-2 text-slate-400 text-xs font-bold">CERRAR</button>
         </div>
     </div>
 
-    <div id="reset-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <!-- Modal Vaciar Sorteo -->
+    <div id="reset-draw-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-3xl p-8 text-center">
-            <h3 class="text-xl font-bold mb-6">¿Borrar todo el sorteo?</h3>
-            <button onclick="clearAllData()" class="w-full py-4 bg-red-600 text-white rounded-xl font-bold mb-2">Sí, borrar</button>
-            <button onclick="closeModal('reset-modal')" class="w-full py-3 bg-slate-100 dark:bg-slate-700 rounded-xl font-bold">Cancelar</button>
+            <h3 class="text-xl font-bold mb-6">¿Vaciar este sorteo?</h3>
+            <p class="text-sm text-slate-500 mb-6">Se borrarán todos los números del sorteo seleccionado.</p>
+            <button onclick="clearCurrentDraw()" class="w-full py-4 bg-amber-600 text-white rounded-xl font-bold mb-2">Sí, vaciar</button>
+            <button onclick="closeModal('reset-draw-modal')" class="w-full py-3 bg-slate-100 dark:bg-slate-700 rounded-xl font-bold">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Modal Reinicio Total -->
+    <div id="full-reset-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-3xl p-8 text-center border-4 border-red-500">
+            <h3 class="text-2xl font-black mb-4 text-red-600">PELIGRO</h3>
+            <p class="text-sm font-bold mb-6">Esto borrará TODA la aplicación (Sorteo A y B) y todos los nombres guardados en este PC. ¿Estás seguro?</p>
+            <button onclick="factoryReset()" class="w-full py-4 bg-red-600 text-white rounded-xl font-black mb-2 shadow-lg">BORRAR TODO DEFINITIVAMENTE</button>
+            <button onclick="closeModal('full-reset-modal')" class="w-full py-3 bg-slate-100 dark:bg-slate-700 rounded-xl font-bold">CANCELAR</button>
         </div>
     </div>
 
@@ -105,7 +119,6 @@
         let currentSelectedNumber = null;
         let isAdmin = false;
 
-        // Dibuja los botones del 00 al 99
         function renderGrid() {
             const grid = document.getElementById('number-grid');
             if(!grid) return;
@@ -125,11 +138,9 @@
                 btn.onclick = () => openEditModal(i);
                 grid.appendChild(btn);
             }
-            // Después de dibujar, aplicamos el filtro si hay algo en el buscador
             filterGrid();
         }
 
-        // Función para filtrar los números en tiempo real
         window.filterGrid = () => {
             const query = document.getElementById('search-input').value.toLowerCase().trim();
             for (let i = 0; i <= 99; i++) {
@@ -137,10 +148,8 @@
                 if (!btn) continue;
                 
                 if (query === "") {
-                    // Si el buscador está vacío, mostramos todo
                     btn.classList.remove('number-hidden');
                 } else {
-                    // Si hay búsqueda, revisamos si el número tiene dueño y si el nombre coincide
                     const data = lotteryData[i];
                     if (data && data.name.toLowerCase().includes(query)) {
                         btn.classList.remove('number-hidden');
@@ -162,10 +171,6 @@
             localStorage.setItem(`local_loteria_jorge_${currentDraw}`, JSON.stringify(lotteryData));
         }
 
-        function init() {
-            loadLocal();
-        }
-
         window.saveData = () => {
             const name = document.getElementById('input-name').value.trim();
             if (!name) return;
@@ -173,24 +178,23 @@
                 name: name, 
                 status: document.getElementById('input-status').value 
             };
-            
+            saveLocal();
             renderGrid();
             updateSummary();
-            saveLocal();
             closeModal('edit-modal');
         };
 
         window.deleteEntry = () => {
             delete lotteryData[currentSelectedNumber];
+            saveLocal();
             renderGrid();
             updateSummary();
-            saveLocal();
             closeModal('edit-modal');
         };
 
         window.switchDraw = (draw) => {
             currentDraw = draw;
-            document.getElementById('search-input').value = ""; // Limpiar búsqueda al cambiar sorteo
+            document.getElementById('search-input').value = "";
             document.getElementById('tab-draw1').className = draw==='draw1' ? "flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm" : "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500";
             document.getElementById('tab-draw2').className = draw==='draw2' ? "flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm" : "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500";
             loadLocal();
@@ -243,23 +247,32 @@
             if (!isAdmin || !list) return;
             const names = {};
             Object.values(lotteryData).forEach(d => names[d.name] = (names[d.name] || 0) + 1);
-            list.innerHTML = Object.keys(names).length > 0 
-                ? Object.keys(names).map(n => `<div class="flex justify-between p-2 bg-slate-100 dark:bg-slate-900 rounded-lg mb-1"><span class="font-bold text-xs">${n}</span><span class="text-xs font-bold text-blue-500">${names[n]} núm.</span></div>`).join('')
+            const sortedNames = Object.keys(names).sort();
+            list.innerHTML = sortedNames.length > 0 
+                ? sortedNames.map(n => `<div class="flex justify-between p-2 bg-slate-100 dark:bg-slate-900 rounded-lg mb-1"><span class="font-bold text-xs">${n}</span><span class="text-xs font-bold text-blue-500">${names[n]} núm.</span></div>`).join('')
                 : `<p class="text-center text-slate-400 text-xs py-4">No hay ventas registradas</p>`;
         }
 
         window.openModal = (id) => document.getElementById(id).classList.remove('hidden');
         window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
         window.logoutAdmin = () => location.reload();
-        window.clearAllData = () => {
+
+        // Borrar sorteo actual
+        window.clearCurrentDraw = () => {
             lotteryData = {};
             saveLocal();
             renderGrid();
             updateSummary();
-            closeModal('reset-modal');
-        }
+            closeModal('reset-draw-modal');
+        };
 
-        init();
+        // Reinicio total (Fábrica)
+        window.factoryReset = () => {
+            localStorage.clear();
+            location.reload();
+        };
+
+        loadLocal();
     </script>
 </body>
 </html>
