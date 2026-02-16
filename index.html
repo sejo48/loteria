@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lotería de Cloud</title>
+    <title>Lotería de Cloud (Local)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class' }
@@ -21,7 +21,7 @@
             <div class="flex flex-col items-center gap-2">
                 <div class="flex items-center gap-2">
                     <p id="role-badge" class="bg-slate-200 dark:bg-slate-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase">Modo Observador</p>
-                    <div id="offline-badge" class="hidden bg-orange-100 text-orange-600 px-2 py-0.5 rounded text-[9px] font-bold uppercase">Modo Local</div>
+                    <div class="bg-green-100 text-green-600 px-2 py-0.5 rounded text-[9px] font-bold uppercase">Guardado en PC</div>
                 </div>
                 <button id="admin-entry-btn" onclick="openModal('login-modal')" class="text-blue-500 text-xs font-bold hover:underline">Acceso Admin</button>
                 <button id="admin-logout-btn" onclick="logoutAdmin()" class="hidden text-red-500 text-xs font-bold hover:underline">Salir</button>
@@ -87,22 +87,11 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'loteria-jorge-pro';
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
+    <script>
         let lotteryData = {};
         let currentDraw = 'draw1';
         let currentSelectedNumber = null;
         let isAdmin = false;
-        let unsubscribe = null;
 
         // Dibuja los botones del 00 al 99
         function renderGrid() {
@@ -127,52 +116,21 @@
         }
 
         function loadLocal() {
-            const saved = localStorage.getItem(`local_loteria_${appId}_${currentDraw}`);
+            const saved = localStorage.getItem(`local_loteria_jorge_${currentDraw}`);
             lotteryData = saved ? JSON.parse(saved) : {};
             renderGrid();
             updateSummary();
         }
 
         function saveLocal() {
-            localStorage.setItem(`local_loteria_${appId}_${currentDraw}`, JSON.stringify(lotteryData));
+            localStorage.setItem(`local_loteria_jorge_${currentDraw}`, JSON.stringify(lotteryData));
         }
 
-        // Se ejecuta al cargar la página
-        async function init() {
-            renderGrid(); // Dibuja la cuadrícula vacía primero
-            loadLocal();  // Carga lo que hay en el PC (memoria rápida)
-            
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                onAuthStateChanged(auth, (user) => {
-                    if (user) connectCloud();
-                });
-            } catch (err) {
-                document.getElementById('offline-badge').classList.remove('hidden');
-            }
+        function init() {
+            loadLocal();
         }
 
-        function connectCloud() {
-            if (unsubscribe) unsubscribe();
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'lottery_state', currentDraw);
-            
-            unsubscribe = onSnapshot(docRef, (snap) => {
-                if (snap.exists()) {
-                    lotteryData = snap.data();
-                    saveLocal(); // Sincroniza memoria local con la nube
-                    renderGrid();
-                    updateSummary();
-                }
-            }, (error) => {
-                document.getElementById('offline-badge').classList.remove('hidden');
-            });
-        }
-
-        window.saveData = async () => {
+        window.saveData = () => {
             const name = document.getElementById('input-name').value.trim();
             if (!name) return;
             lotteryData[currentSelectedNumber] = { 
@@ -183,23 +141,14 @@
             renderGrid();
             updateSummary();
             saveLocal();
-            
-            try {
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'lottery_state', currentDraw), lotteryData);
-            } catch (e) {
-                console.error("Error al subir a la nube:", e);
-            }
             closeModal('edit-modal');
         };
 
-        window.deleteEntry = async () => {
+        window.deleteEntry = () => {
             delete lotteryData[currentSelectedNumber];
             renderGrid();
             updateSummary();
             saveLocal();
-            try {
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'lottery_state', currentDraw), lotteryData);
-            } catch (e) {}
             closeModal('edit-modal');
         };
 
@@ -208,7 +157,6 @@
             document.getElementById('tab-draw1').className = draw==='draw1' ? "flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm" : "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500";
             document.getElementById('tab-draw2').className = draw==='draw2' ? "flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm" : "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500";
             loadLocal();
-            connectCloud();
         };
 
         window.checkAdminPassword = () => {
@@ -266,12 +214,11 @@
         window.openModal = (id) => document.getElementById(id).classList.remove('hidden');
         window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
         window.logoutAdmin = () => location.reload();
-        window.clearAllData = async () => {
+        window.clearAllData = () => {
             lotteryData = {};
             saveLocal();
             renderGrid();
             updateSummary();
-            try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'lottery_state', currentDraw)); } catch(e) {}
             closeModal('reset-modal');
         }
 
