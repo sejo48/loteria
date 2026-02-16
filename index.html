@@ -43,7 +43,6 @@
             <button id="tab-draw2" onclick="switchDraw('draw2')" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-500">Sorteo B</button>
         </div>
 
-        <!-- La cuadrícula SIEMPRE estará aquí -->
         <div id="number-grid" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 mb-8"></div>
 
         <div id="admin-panel" class="hidden space-y-4">
@@ -52,7 +51,7 @@
                 <div id="summary-list" class="space-y-2 max-h-60 overflow-y-auto"></div>
             </div>
             <div class="text-center">
-                <button onclick="openResetModal()" class="text-red-500 text-[10px] font-bold uppercase tracking-tighter hover:underline">Limpiar datos de este sorteo</button>
+                <button onclick="openModal('reset-modal')" class="text-red-500 text-[10px] font-bold uppercase tracking-tighter hover:underline">Limpiar datos de este sorteo</button>
             </div>
         </div>
     </div>
@@ -115,7 +114,6 @@
         let isAdmin = false;
         let unsubscribe = null;
 
-        // --- 1. FUNCIÓN QUE DIBUJA LOS NÚMEROS (Independiente) ---
         function renderGrid() {
             const grid = document.getElementById('number-grid');
             grid.innerHTML = '';
@@ -123,26 +121,17 @@
                 const btn = document.createElement('button');
                 btn.id = `btn-${i}`;
                 btn.innerText = i.toString().padStart(2, '0');
-                
-                // Clases visuales
                 const base = "number-btn h-12 flex items-center justify-center rounded-xl font-black text-lg border-b-4 transition-all ";
                 let colors = "bg-white dark:bg-slate-800 text-blue-500 border-slate-200 dark:border-slate-700/50 hover:border-blue-400";
-                
                 if (lotteryData[i]) {
-                    if (lotteryData[i].status === 'cancelled') {
-                        colors = "bg-emerald-500 text-white border-emerald-700 shadow-lg";
-                    } else {
-                        colors = "bg-amber-500 text-white border-amber-700 shadow-lg";
-                    }
+                    colors = lotteryData[i].status === 'cancelled' ? "bg-emerald-500 text-white border-emerald-700 shadow-lg" : "bg-amber-500 text-white border-amber-700 shadow-lg";
                 }
-                
                 btn.className = base + colors;
                 btn.onclick = () => openEditModal(i);
                 grid.appendChild(btn);
             }
         }
 
-        // --- 2. CARGA LOCAL (Plan B) ---
         function loadLocal() {
             const saved = localStorage.getItem(`local_loteria_${appId}_${currentDraw}`);
             lotteryData = saved ? JSON.parse(saved) : {};
@@ -154,19 +143,15 @@
             localStorage.setItem(`local_loteria_${appId}_${currentDraw}`, JSON.stringify(lotteryData));
         }
 
-        // --- 3. CONEXIÓN A NUBE ---
         async function init() {
-            loadLocal(); // Dibujamos primero lo que tengamos en PC
-            
+            loadLocal();
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
-                onAuthStateChanged(auth, (u) => {
-                    if (u) connectCloud();
-                });
+                onAuthStateChanged(auth, (u) => { if (u) connectCloud(); });
             } catch (err) {
                 document.getElementById('offline-badge').classList.remove('hidden');
             }
@@ -175,37 +160,28 @@
         function connectCloud() {
             if (unsubscribe) unsubscribe();
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'lottery_state', currentDraw);
-            
             unsubscribe = onSnapshot(docRef, (snap) => {
                 if (snap.exists()) {
                     lotteryData = snap.data();
-                    saveLocal(); // Actualizamos PC con lo de la nube
+                    saveLocal();
                     renderGrid();
                     updateSummary();
                 }
             }, (error) => {
-                console.error("Nube bloqueada. Usando solo memoria local.");
                 document.getElementById('offline-badge').classList.remove('hidden');
             });
         }
 
-        // --- 4. ACCIONES ---
         window.saveData = async () => {
             const name = document.getElementById('input-name').value.trim();
             if (!name) return;
             lotteryData[currentSelectedNumber] = { name, status: document.getElementById('input-status').value };
-            
             renderGrid();
             updateSummary();
             saveLocal();
-
-            // Intentar subir a nube
             try {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'lottery_state', currentDraw);
-                await setDoc(docRef, lotteryData);
-            } catch (e) {
-                console.warn("No se pudo subir a la nube, quedó guardado en tu PC.");
-            }
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'lottery_state', currentDraw), lotteryData);
+            } catch (e) {}
             closeModal('edit-modal');
         };
 
@@ -215,8 +191,7 @@
             updateSummary();
             saveLocal();
             try {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'lottery_state', currentDraw);
-                await setDoc(docRef, lotteryData);
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'lottery_state', currentDraw), lotteryData);
             } catch (e) {}
             closeModal('edit-modal');
         };
@@ -246,7 +221,6 @@
             currentSelectedNumber = num;
             document.getElementById('modal-title').innerText = `Número ${num.toString().padStart(2, '0')}`;
             const data = lotteryData[num];
-
             if (isAdmin) {
                 document.getElementById('admin-inputs').classList.remove('hidden');
                 document.getElementById('info-display').classList.add('hidden');
@@ -260,9 +234,9 @@
                     document.getElementById('observer-msg').classList.add('hidden');
                     document.getElementById('display-name').innerText = data.name;
                     const isPaid = data.status === 'cancelled';
-                    const badge = document.getElementById('display-status-badge');
-                    badge.innerText = isPaid ? 'PAGADO' : 'APARTADO';
-                    badge.className = isPaid ? "mt-2 inline-block px-3 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-600" : "mt-2 inline-block px-3 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-600";
+                    const b = document.getElementById('display-status-badge');
+                    b.innerText = isPaid ? 'PAGADO' : 'APARTADO';
+                    b.className = isPaid ? "mt-2 inline-block px-3 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-600" : "mt-2 inline-block px-3 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-600";
                 } else {
                     document.getElementById('info-display').classList.add('hidden');
                     document.getElementById('observer-msg').classList.remove('hidden');
@@ -290,7 +264,6 @@
             try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'lottery_state', currentDraw)); } catch(e) {}
             closeModal('reset-modal');
         }
-
         init();
     </script>
 </body>
